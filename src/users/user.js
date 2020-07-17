@@ -9,8 +9,8 @@ const Gender = {
  Object.freeze(Gender);
 
 class UserBuilder {
-    setId(value) {
-        this.id = value;
+    setIdFromDb(value) {
+        this.idFromDb = value;
         return this;
     }
 
@@ -24,9 +24,18 @@ class UserBuilder {
         return this;
     }
 
+    setBirthDate(value) {
+        this.birthDate = value;
+        return this;
+    }
+
     setGender(value) {
-        console.log('SET GENDER: ', value);
         this.gender = value;
+        return this;
+    }
+
+    setEmail(value) {
+        this.email = value;
         return this;
     }
 
@@ -37,31 +46,46 @@ class UserBuilder {
         if (!('lastName' in this)) {
             throw new Error('LastName is missing.');
         }
+        if (!('birthDate' in this)) {
+            throw new Error('BirthDate is missing.');
+        }
         if (!('gender' in this)) {
             throw new Error('Gender is missing.');
         }
-        var genderIsOk = false;
-        for (var g in Gender) {
+        if (!('email' in this)) {
+            throw new Error('Email is missing.');
+        }
+        let genderIsOk = false;
+        for (let g in Gender) {
             if (Gender[g] === this.gender) {
-                console.log('Gender is OK: ', g);
                 genderIsOk = true;
                 break;
             }
         }
         if (!genderIsOk) {
-            console.log('THIS GENDER: ', this.gender);
             throw new Error('Bad value for gender: ' + this.gender);
         }
-        return new User(this);
+
+        if (!this.idFromDb) {
+            return new User({builder:this});
+        } else {
+            return new User({idFromDb:this.idFromDb, builder:this});
+        }
     }
 }
 
 class User {
-    constructor(builder) {
-        if (!this.id) {this.id = uuidv4();}
-        this.firstName = builder.firstName;
-        this.lastName = builder.lastName;
-        this.gender = builder.gender;
+    constructor(data) {
+        if (!data.idFromDb) {
+            this.id = uuidv4();
+        } else {
+            this.id = data.idFromDb;
+        }
+        this.firstName = data.builder.firstName;
+        this.lastName = data.builder.lastName;
+        this.birthDate = data.builder.birthDate;
+        this.gender = data.builder.gender;
+        this.email = data.builder.email;
     }
 }
 

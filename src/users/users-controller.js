@@ -1,6 +1,5 @@
 'use strict';
 
-// const User = require('./user');
 const UsersDao = require('./users-dao-mysql');
 
 const dao = new UsersDao();
@@ -10,7 +9,6 @@ exports.getAll = function(req, res) {
   dao.find()
     .then(data => {
       console.log(data);
-      //entities = JSON.parse(JSON.stringify(entities));
       res.json(data);
     })
     .catch (err => {
@@ -22,7 +20,7 @@ exports.getAll = function(req, res) {
 exports.get = function(req, res) {
     console.log('Ctrl GET User, req.params: ', req.params);
     console.log('Ctrl GET User id: ', req.params.id);
-    UsersDao.findById(req.params.id)
+    dao.findById(req.params.id)
       .then(data => {
         console.log(data);
         res.json(data);
@@ -43,12 +41,12 @@ exports.create = function(req, res) {
       return;
     }
   
-    var newUser = new UserBuilder()
+    let newUser = new UserBuilder()
       .firstName(req.body.firstName)
       .lastName(req.body.firstName)
       .build();
 
-    UsersDao.create(newUser)
+      dao.create(newUser)
       .then(data => {
         console.log(data);
         res.json(data);

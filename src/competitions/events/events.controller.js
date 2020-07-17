@@ -38,7 +38,7 @@ exports.create = function(req, res) {
       return;
     }
   
-    var new_competition = new Competition(req.body);
+    let new_competition = new Competition(req.body);
     Competition.create(req.body)
       .then(data => {
         console.log(data);

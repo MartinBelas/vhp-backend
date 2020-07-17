@@ -3,7 +3,7 @@
 module.exports = function CompetitionsRouter(app) {
 
     const competitionsController = require('./competitions.controller.js');
-    var router = require("express").Router();
+    let router = require("express").Router();
 
     // app.router('/competitions')
     //   .get(competitionsController.getAll)
