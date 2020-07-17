@@ -1,6 +1,8 @@
 'use strict';
 
-const UsersDao = require('./users.dao');
+// const User = require('./user');
+const UsersDao = require('./users-dao-mysql');
+
 const dao = new UsersDao();
 
 exports.getAll = function(req, res) {
@@ -8,6 +10,7 @@ exports.getAll = function(req, res) {
   dao.find()
     .then(data => {
       console.log(data);
+      //entities = JSON.parse(JSON.stringify(entities));
       res.json(data);
     })
     .catch (err => {
@@ -32,15 +35,20 @@ exports.get = function(req, res) {
 
 exports.create = function(req, res) {
     console.log('Ctrl POST User');
+    console.log("REQ.body: ", req.body);
     
     // Validate request
-    if (!req.body.title) {
+    if (!req.body.user) {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
   
-    var new_competition = new User(req.body);
-    UsersDao.create(req.body)
+    var newUser = new UserBuilder()
+      .firstName(req.body.firstName)
+      .lastName(req.body.firstName)
+      .build();
+
+    UsersDao.create(newUser)
       .then(data => {
         console.log(data);
         res.json(data);

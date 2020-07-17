@@ -8,7 +8,7 @@ const app = express();
 const bodyParser = require('body-parser');
 
 //const AuthorizationRouter = require('./authorization/routes.config');
-const UsersRouter = require('./users/users.routes.js');
+const UsersRouter = require('./users/users-routes.js');
 const CompetitionsRouter = require('./competitions/competitions.routes.js');
 
 app.use(function (req, res, next) {

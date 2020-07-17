@@ -2,7 +2,7 @@
 
 module.exports = function UsersRouter(app) {
 
-    const controller = require(`./users.controller.js`);
+    const controller = require(`./users-controller.js`);
     const router = require(`express`).Router();
 	
 	app.use(`/api/users`, router);

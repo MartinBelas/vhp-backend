@@ -1,14 +1,14 @@
 'use strict';
 
 const dbConnection = require('../mysqlDbConnection');
-//const dbConnection = require('../postgresqlDbConnection');
+const { User, UserBuilder, Gender } = require('./user');
 
 const queries = {
-    insert_user: `INSERT INTO User(name, surname, birthDate, sex) VALUES(?,?,?,?)`,
-    read_users: `SELECT * FROM User`,
-    read_user: `SELECT * FROM User WHERE User.id = ?`,
-    update_user: `UPDATE User SET User.name = ?, User.surname = ? WHERE User.id = ?`,
-    delete_user: `DELETE FROM User WHERE User.id = ?`
+    insertRow: `INSERT INTO User(id, firstname, lastname, gender) VALUES(?,?,?,?)`,
+    readAllRows: `SELECT * FROM User`,
+    readRow: `SELECT * FROM User WHERE User.id = ?`,
+    updateRow: `UPDATE User SET User.firstname = ?, User.lastname = ? WHERE User.id = ?`,
+    deleteRow: `DELETE FROM User WHERE User.id = ?`
 }
 
 module.exports = class UsersDao {
@@ -18,8 +18,8 @@ module.exports = class UsersDao {
     try {
       await con.query("START TRANSACTION");
       let saved = await con.query(
-        queries.insert_user,
-        [newEntity.email, newEntity.name, newEntity.surname, newEntity.birhtDate, newEntity.sex]
+        queries.insertRow,
+        [newEntity.id, newEntity.firstName, newEntity.lastName, newEntity.gender.code]
       );
       await con.query("COMMIT");
       newEntity.id = saved.insertId;
@@ -38,10 +38,24 @@ module.exports = class UsersDao {
     let con = await dbConnection();
     try {
       await con.query("START TRANSACTION");
-      let entities = await con.query(queries.read_users);
+      let dbRows = await con.query(queries.readAllRows);
       await con.query("COMMIT");
-      entities = JSON.parse(JSON.stringify(entities));
-      return entities;
+      
+      let result = dbRows.map(row => {
+        console.log('------------ READ USER row FROM DB: ', row)
+        new UserBuilder()
+          .setId(row.id)
+          .setFirstName(row.firstname)
+          .setLastName(row.lasttname)
+          // .setBirthDate(row.birthDate)
+          .setGender(row.gender)
+          // .setEmail(row.email)
+          .build();
+      }); 
+
+
+      //entities = JSON.parse(JSON.stringify(entities));
+      return result;
     } catch (ex) {
       console.log(ex);
       throw ex;
@@ -55,7 +69,7 @@ module.exports = class UsersDao {
     let con = await dbConnection();
     try {
       await con.query("START TRANSACTION");
-      let entity = await con.query(queries.read_user, [id]);
+      let entity = await con.query(queries.readRow, [id]);
       await con.query("COMMIT");
       entity = JSON.parse(JSON.stringify(entity));
       return entity;
@@ -72,7 +86,7 @@ module.exports = class UsersDao {
     let con = await dbConnection();
     try {
       await con.query("START TRANSACTION");
-      await con.query(queries.update_user, [
+      await con.query(queries.updateRow, [
         entity.title,
         entity.completed,
         entity.id
@@ -93,7 +107,7 @@ module.exports = class UsersDao {
     let con = await dbConnection();
     try {
       await con.query("START TRANSACTION");
-      await con.query(queries.delete_user, [id]);
+      await con.query(queries.deleteRow, [id]);
       await con.query("COMMIT");
       return true;
     } catch (ex) {
