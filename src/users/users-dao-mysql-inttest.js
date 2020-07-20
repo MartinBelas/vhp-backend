@@ -79,6 +79,75 @@ describe('users-dao-mysql-inttest', function() {
     });
 });
 
+describe('#update()', function() {
+    it('should update last name', async function() {
+
+        const firstName = 'Julie';
+        const lastName = 'Bila';
+        const birthDate = 'aaa';
+        const gender = Gender.F;
+        const email = 'bbb';
+
+        let julie = new UserBuilder()
+            .setFirstName(firstName)
+            .setLastName(lastName)
+            .setBirthDate(birthDate)
+            .setGender(gender)
+            .setEmail(email)
+            .build();
+
+        let user = await dao.create(julie);
+        assert.equal(user.firstName, firstName);
+        assert.equal(user.lastName, lastName);
+        assert.equal(user.gender, gender);
+        assert.equal(user.email, email);
+        assert.equal(user.birthDate, birthDate);
+
+        julie.updateLastName('Cerna');
+        julie = await dao.update(julie);
+
+        assert.equal(user.firstName, firstName);
+        assert.equal(user.lastName, 'Cerna');
+        assert.equal(user.gender, gender);
+        assert.equal(user.email, email);
+        assert.equal(user.birthDate, birthDate);
+    });
+
+    it('should update email', async function() {
+
+        const firstName = 'Julie';
+        const lastName = 'Bila';
+        const birthDate = 'aaa';
+        const gender = Gender.F;
+        const email = 'bbb';
+
+        let julie = new UserBuilder()
+            .setFirstName(firstName)
+            .setLastName(lastName)
+            .setBirthDate(birthDate)
+            .setGender(gender)
+            .setEmail(email)
+            .build();
+
+        let user = await dao.create(julie);
+        assert.equal(user.firstName, firstName);
+        assert.equal(user.lastName, lastName);
+        assert.equal(user.gender, gender);
+        assert.equal(user.email, email);
+        assert.equal(user.birthDate, birthDate);
+
+        let newEmail = 'xx@zz.yy';
+        julie.updateEmail(newEmail);
+        julie = await dao.update(julie);
+
+        assert.equal(user.firstName, firstName);
+        assert.equal(user.lastName, lastName);
+        assert.equal(user.gender, gender);
+        assert.equal(user.email, newEmail);
+        assert.equal(user.birthDate, birthDate);
+    });
+});
+
 async function clearTblUsers() {
     let con = await dbConnection();
     try {

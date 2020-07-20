@@ -7,9 +7,11 @@ const queries = {
     insertRow: `INSERT INTO User(id, firstname, lastname, birthdate, gender, email) VALUES(?,?,?,?,?,?)`,
     readAllRows: `SELECT * FROM User`,
     readRow: `SELECT * FROM User WHERE User.id = ?`,
-    updateRow: `UPDATE User SET User.firstname = ?, User.lastname = ? WHERE User.id = ?`,
+    updateRow: `UPDATE User SET User.firstname = ?, User.lastname = ?, User.birthdate = ?, User.gender = ?, User.email = ? WHERE User.id = ?`,
     deleteRow: `DELETE FROM User WHERE User.id = ?`
 }
+
+let builder = new UserBuilder();
 
 module.exports = class UsersDao {
 
@@ -25,12 +27,11 @@ module.exports = class UsersDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let saved = await con.query(
+            await con.query(
                 queries.insertRow,
                 [newEntity.id, newEntity.firstName, newEntity.lastName, newEntity.birthDate, newEntity.gender.code, newEntity.email]
             );
             await con.query("COMMIT");
-            newEntity.id = saved.insertId;
             return newEntity;
         } catch (ex) {
             await con.query("ROLLBACK");
@@ -50,7 +51,6 @@ module.exports = class UsersDao {
             await con.query("COMMIT");
 
             dbRows = JSON.parse(JSON.stringify(dbRows));
-            let builder = new UserBuilder();
             let entities = dbRows.map(row => {
                 return builder
                     .setIdFromDb(row.id)
@@ -75,9 +75,18 @@ module.exports = class UsersDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let entity = await con.query(queries.readRow, [id]);
+            let dbRow = (await con.query(queries.readRow, [id]))[0];
             await con.query("COMMIT");
-            entity = JSON.parse(JSON.stringify(entity));
+
+            dbRow = JSON.parse(JSON.stringify(dbRow));
+            let entity = builder
+                    .setIdFromDb(dbRow.id)
+                    .setFirstName(dbRow.firstname)
+                    .setLastName(dbRow.lastname)
+                    .setBirthDate(dbRow.birthdate)
+                    .setGender(Gender[dbRow.gender])
+                    .setEmail(dbRow.email)
+                    .build();
             return entity;
         } catch (ex) {
             console.log(ex);
@@ -93,12 +102,15 @@ module.exports = class UsersDao {
         try {
             await con.query("START TRANSACTION");
             await con.query(queries.updateRow, [
-                entity.title,
-                entity.completed,
+                entity.firstName,
+                entity.lastName,
+                entity.birthDate,
+                entity.gender.code,
+                entity.email,
                 entity.id
             ]);
             await con.query("COMMIT");
-            return true;
+            return entity;
         } catch (ex) {
             await con.query("ROLLBACK");
             console.log(ex);

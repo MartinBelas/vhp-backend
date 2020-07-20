@@ -40,19 +40,19 @@ class UserBuilder {
     }
 
     build() {
-        if (!('firstName' in this)) {
+        if (!(this.firstName)) {
             throw new Error('FirstName is missing.');
         }
-        if (!('lastName' in this)) {
+        if (!(this.lastName)) {
             throw new Error('LastName is missing.');
         }
-        if (!('birthDate' in this)) {
+        if (!(this.birthDate)) {
             throw new Error('BirthDate is missing.');
         }
-        if (!('gender' in this)) {
+        if (!(this.gender)) {
             throw new Error('Gender is missing.');
         }
-        if (!('email' in this)) {
+        if (!(this.email)) {
             throw new Error('Email is missing.');
         }
         let genderIsOk = false;
@@ -86,6 +86,18 @@ class User {
         this.birthDate = data.builder.birthDate;
         this.gender = data.builder.gender;
         this.email = data.builder.email;
+    }
+
+    updateLastName(value) {
+        if (value) {
+            this.lastName = value;
+        }
+    }
+
+    updateEmail(value) {
+        if (value) {
+            this.email = value;
+        }
     }
 }
 
