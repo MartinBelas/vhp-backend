@@ -1,4 +1,5 @@
 'use strict';
+require('custom-env').env();
 
 const config = require('./config.js');
 

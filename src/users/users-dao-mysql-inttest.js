@@ -1,4 +1,5 @@
 'use strict';
+require('custom-env').env('test');
 
 const assert = require('assert');
 const { UserBuilder, Gender } = require('./user');

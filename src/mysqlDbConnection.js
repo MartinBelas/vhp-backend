@@ -1,6 +1,4 @@
 'use strict';
-require('dotenv').config();
-//require('dotenv').config({ path: '.env' });
 
 const mysql = require('promise-mysql');
 
