@@ -50,7 +50,10 @@ module.exports = class UsersDao {
             let dbRows = await con.query(queries.readAllRows);
             await con.query("COMMIT");
 
-            dbRows = JSON.parse(JSON.stringify(dbRows));
+            if (!dbRows) {
+                throw {"message":"No data from db."};    
+            }
+
             let entities = dbRows.map(row => {
                 return builder
                     .setIdFromDb(row.id)
@@ -78,7 +81,14 @@ module.exports = class UsersDao {
             let dbRow = (await con.query(queries.readRow, [id]))[0];
             await con.query("COMMIT");
 
-            dbRow = JSON.parse(JSON.stringify(dbRow));
+            if (!dbRow) {
+                return {
+                    "suggestedStatus":404,
+                    "error":{
+                        "message":"User not found."
+                    }
+                }
+            }
             let entity = builder
                     .setIdFromDb(dbRow.id)
                     .setFirstName(dbRow.firstname)
