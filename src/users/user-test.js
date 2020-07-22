@@ -108,3 +108,28 @@ describe('creating new User using UsersBuilder', () => {
         })
     })
 })
+
+describe('reading User from db using UsersBuilder', () => { 
+
+    it('when all is set ok', () => {
+
+        const idFromDb = 'some-id-from-db';
+        
+        const builder = new UserBuilder();
+        const testUser = builder
+            .setIdFromDb(idFromDb)
+            .setFirstName(FIRST_NAME)
+            .setLastName(LAST_NAME)
+            .setBirthDate(BIRTH_DATE)
+            .setGender(GENDER)
+            .setEmail(EMAIL)
+            .build();
+
+        assert.equal(testUser.id, idFromDb);
+        assert.equal(testUser.firstName, FIRST_NAME);
+        assert.equal(testUser.lastName, LAST_NAME);
+        assert.equal(testUser.birthDate, BIRTH_DATE);
+        assert.equal(testUser.gender, GENDER);
+        assert.equal(testUser.email, EMAIL);
+    })
+})

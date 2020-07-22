@@ -66,26 +66,22 @@ class UserBuilder {
             throw new Error('Bad value for gender: ' + this.gender);
         }
 
-        if (!this.idFromDb) {
-            return new User({builder:this});
-        } else {
-            return new User({idFromDb:this.idFromDb, builder:this});
-        }
+        return new User(this);
     }
 }
 
 class User {
-    constructor(data) {
-        if (!data.idFromDb) {
+    constructor(builder) {
+        if (!builder.idFromDb) {
             this.id = uuidv4();
         } else {
-            this.id = data.idFromDb;
+            this.id = builder.idFromDb;
         }
-        this.firstName = data.builder.firstName;
-        this.lastName = data.builder.lastName;
-        this.birthDate = data.builder.birthDate;
-        this.gender = data.builder.gender;
-        this.email = data.builder.email;
+        this.firstName = builder.firstName;
+        this.lastName = builder.lastName;
+        this.birthDate = builder.birthDate;
+        this.gender = builder.gender;
+        this.email = builder.email;
     }
 
     updateLastName(value) {
