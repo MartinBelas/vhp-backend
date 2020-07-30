@@ -25,7 +25,7 @@ app.use(function (req, res, next) {
     }
 });
 
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 
 // AuthorizationRouter.routesConfig(app);
