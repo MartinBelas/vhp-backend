@@ -10,18 +10,8 @@ module.exports = class UsersController {
     static getAll = function (req, res) {
         console.log('Ctrl GET All Users');
         dao.find()
-            .then(result => {
-                if (result.suggestedStatus) {
-                    res.status(result.suggestedStatus);
-                }
-                if (result.data) {
-                    res.status(200);
-                    res.json(result.data);
-                } else if (result.error) {
-                    res.json(result.error);
-                } else {
-                    res.json(result);
-                }
+            .then(data => {
+                res.json(data);
             })
             .catch(err => {
                 console.error(err);
