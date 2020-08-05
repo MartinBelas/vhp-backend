@@ -25,6 +25,15 @@ app.use(function (req, res, next) {
     }
 });
 
+app.use(function (req, res, next) {
+
+    if (req.headers['api-key'] && (req.headers['api-key']===process.env.API_KEY)) {
+        return next();
+    } else {
+        res.end();
+    }
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 
