@@ -4,13 +4,15 @@ require('custom-env').env();
 const config = require('./config.js');
 
 const express = require('express');
+const jwt = require('jwt-simple');
 const app = express();
 
-const bodyParser = require('body-parser');
+app.set('jwtTokenSecret', process.env.JWT_SECRET_STRING);
 
 //const AuthorizationRouter = require('./authorization/routes.config');
-const UsersRouter = require('./users/users-routes.js');
+const AdminRouter = require('./auth/admin/admin-routes.js');
 const CompetitionsRouter = require('./competitions/competitions.routes.js');
+const UsersRouter = require('./users/users-routes.js');
 
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -38,8 +40,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 
 // AuthorizationRouter.routesConfig(app);
-UsersRouter(app);
+AdminRouter(app);
 CompetitionsRouter(app);
+UsersRouter(app);
 
 // This responds with "Hello World" on the homepage
 app.get('/', function (req, res) {
