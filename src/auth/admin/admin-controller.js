@@ -1,7 +1,12 @@
 'use strict';
 
+const bcrypt = require('bcrypt');
 const AdminDao = require('./admin-dao-mysql');
 const { AdminBuilder } = require('./admin');
+
+// import { hash as _hash } from 'bcrypt';
+// import AdminDao from './admin-dao-mysql';
+// import { AdminBuilder } from './admin';
 
 const dao = new AdminDao();
 
@@ -15,8 +20,6 @@ module.exports = class AdminController {
             res.status(400).end();
             return;
         }
-
-        console.log('AdminController, create: ', req.body.admin.email);
 
         // Validate request
         if (!req.body.admin) {
@@ -36,15 +39,18 @@ module.exports = class AdminController {
             return;
         }
 
-        let newAdmin = new AdminBuilder()
+        const saltRounds = 10;
+        const hashPassword = bcrypt.hashSync(req.body.admin.password, saltRounds);
+
+        const newAdmin = new AdminBuilder()
             .setCompetition(req.body.admin.competition)
             .setEmail(req.body.admin.email)
-            .setPassword(req.body.admin.password)
+            .setPassword(hashPassword)
             .build();
 
         dao.create(newAdmin)
             .then(data => {
-                console.log(data);
+                console.log("New Admin created.");
                 res.json(data);
             })
             .catch(err => {

@@ -1,16 +1,15 @@
 'use strict';
 
 const dbConnection = require('../../mysqlDbConnection');
-const { AdminBuilder } = require('./admin');
+const { LoginBuilder } = require('./login');
 
 const queries = {
-    insertRow: `INSERT INTO Admin(competition, email, password) VALUES(?,?,?)`,
-    readRow: `SELECT * FROM Admin WHERE competition = ? AND email = ? AND password = ?`,
+    readRow: `SELECT * FROM Login WHERE competition = ? AND email = ? AND password = ?`,
 }
 
-let builder = new AdminBuilder();
+let builder = new LoginBuilder();
 
-module.exports = class AdminsDao {
+module.exports = class LoginsDao {
 
     async getDbConnection() {
         if (!this.dbConnectionConfig) {
@@ -21,9 +20,6 @@ module.exports = class AdminsDao {
     }
 
     async create(newEntity) {
-        //TODO let duplicityCheck = (await findOne(newEntity))....
-        //if (!duplicityCheck) throw new Error("Duplicity check error.");
-
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
@@ -43,11 +39,11 @@ module.exports = class AdminsDao {
         }
     }
 
-    async findOne(entity) {
+    async findOne(competition, email, password) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = (await con.query(queries.readRow, [entity.competition, entity.email, entity.password]))[0];
+            let dbRow = (await con.query(queries.readRow, [competition, email, password]))[0];
             await con.query("COMMIT");
 
             if (!dbRow) {

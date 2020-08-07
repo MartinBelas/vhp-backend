@@ -9,8 +9,8 @@ const app = express();
 
 app.set('jwtTokenSecret', process.env.JWT_SECRET_STRING);
 
-//const AuthorizationRouter = require('./authorization/routes.config');
 const AdminRouter = require('./auth/admin/admin-routes.js');
+const LoginRouter = require('./auth/login/login-routes.js');
 const CompetitionsRouter = require('./competitions/competitions.routes.js');
 const UsersRouter = require('./users/users-routes.js');
 
@@ -39,8 +39,8 @@ app.use(function (req, res, next) {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 
-// AuthorizationRouter.routesConfig(app);
 AdminRouter(app);
+LoginRouter(app);
 CompetitionsRouter(app);
 UsersRouter(app);
 
