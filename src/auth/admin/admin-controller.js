@@ -1,6 +1,6 @@
 'use strict';
 
-const bcrypt = require('bcrypt');
+const hash = require('../../common/hash.js');
 const AdminDao = require('./admin-dao-mysql');
 const { AdminBuilder } = require('./admin');
 
@@ -39,8 +39,7 @@ module.exports = class AdminController {
             return;
         }
 
-        const saltRounds = 10;
-        const hashPassword = bcrypt.hashSync(req.body.admin.password, saltRounds);
+        const hashPassword = hash.hashSync(req.body.admin.password);
 
         const newAdmin = new AdminBuilder()
             .setCompetition(req.body.admin.competition)

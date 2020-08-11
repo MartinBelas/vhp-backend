@@ -2,14 +2,16 @@
 
 const dbConnection = require('../../mysqlDbConnection');
 const { LoginBuilder } = require('./login');
+const { ResultBuilder } = require('../../common/result');
 
 const queries = {
-    readRow: `SELECT * FROM Login WHERE competition = ? AND email = ? AND password = ?`,
+    readRow: `SELECT * FROM Admin WHERE competition = ? AND email = ?`,
 }
 
 let builder = new LoginBuilder();
+let resultBuilder = new ResultBuilder();
 
-module.exports = class LoginsDao {
+module.exports = class LoginDao {
 
     async getDbConnection() {
         if (!this.dbConnectionConfig) {
@@ -39,27 +41,30 @@ module.exports = class LoginsDao {
         }
     }
 
-    async findOne(competition, email, password) {
+    async findOne(competition, email) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = (await con.query(queries.readRow, [competition, email, password]))[0];
+            let dbRow = (await con.query(queries.readRow, [competition, email]))[0];
             await con.query("COMMIT");
 
             if (!dbRow) {
-                return {
-                    "suggestedStatus":404,
-                    "error":{
-                        "message":"Record not found."
-                    }
-                }
+                return resultBuilder
+                        .setIsOk(false)
+                        .setErrMessage('Record not found.')
+                        .setSuggestedStatus(404)
+                        .build();
             }
+
             let entity = builder
                     .setCompetition(dbRow.competition)
                     .setEmail(dbRow.email)
                     .setPassword(dbRow.password)
                     .build();
-            return entity;
+            return resultBuilder
+                        .setIsOk(true)
+                        .setData(entity)
+                        .build();
         } catch (ex) {
             console.log(ex);
             throw ex;

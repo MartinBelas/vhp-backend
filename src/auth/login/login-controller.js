@@ -1,8 +1,8 @@
 'use strict';
 
-const bcrypt = require('bcrypt');
+const hash = require('../../common/hash.js');
 const LoginDao = require('./login-dao-mysql');
-const LoginBuilder = require('./login');
+const { LoginBuilder } = require('./login');
 
 const dao = new LoginDao();
 
@@ -19,32 +19,34 @@ module.exports = class LoginController {
             res.status(400).send({ message: "Competition can not be empty!" });
             return;
         }
-        if (!req.body.login.user) {
-            res.status(400).send({ message: "User/email can not be empty!" });
+        if ((!req.body.login.email) || (!req.body.login.password)) {
+            res.status(400).send({ message: "User/email and password can not be empty!" });
             return;
         }
-        if (!req.body.login.password) {
-            res.status(400).send({ message: "Password can not be empty!" });
-            return;
-        }
-
-        const saltRounds = 10;
-        const hashPassword = bcrypt.hashSync(req.body.login.password, saltRounds);
-
+        
         let newLoginAttempt = new LoginBuilder()
             .setCompetition(req.body.login.competition)
-            .setUser(req.body.login.user)
-            .setPassword(hashPassword)
+            .setEmail(req.body.login.email)
+            .setPassword(req.body.login.password)
             .build();
 
-        //TODO
-        dao.find(newLoginAttempt)
-            .then(data => {
-                console.log('Login ok, user: ', data.email);
-                res.json(data);
+        dao.findOne(newLoginAttempt.competition, newLoginAttempt.email)
+            .then(result => {
+                if (!result.isOk) {
+                    res.status(401).end();
+                } else {
+                    const loginOk = hash.compareSync(newLoginAttempt.password, result.data.password);
+                    if (loginOk) {
+                        result.data.password = "";
+                        res.json(result.data);
+                        //TODO set Context in frontend
+                    } else {
+                        res.status(401).end();
+                    }
+                } 
             })
             .catch(err => {
-                console.error(err);
+                console.error('ERR.:', err);
                 res.send(err);
             })
     };

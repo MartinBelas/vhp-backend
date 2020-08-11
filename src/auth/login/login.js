@@ -1,7 +1,6 @@
 'use strict';
 
 class LoginBuilder {
-
     setCompetition(value) {
         this.competition = value;
         return this;
