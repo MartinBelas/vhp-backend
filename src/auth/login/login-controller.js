@@ -38,8 +38,7 @@ module.exports = class LoginController {
                     const loginOk = hash.compareSync(newLoginAttempt.password, result.data.password);
                     if (loginOk) {
                         result.data.password = "";
-                        res.json(result.data);
-                        //TODO set Context in frontend
+                        res.json(result);
                     } else {
                         res.status(401).end();
                     }
