@@ -1,11 +1,7 @@
 'use strict';
 
 class AdminBuilder {
-    setCompetition(value) {
-        this.competition = value;
-        return this;
-    }
-    
+
     setEmail(value) {
         this.email = value;
         return this;
@@ -17,9 +13,6 @@ class AdminBuilder {
     }
 
     build() {
-        if (!(this.competition)) {
-            throw new Error('Competition is missing.');
-        }
         if (!(this.email)) {
             throw new Error('User/Email is missing.');
         }
@@ -32,7 +25,6 @@ class AdminBuilder {
 
 class Admin {
     constructor(builder) {
-        this.competition = builder.competition;
         this.email = builder.email;
         this.password = builder.password;
     }

@@ -4,8 +4,8 @@ const dbConnection = require('../../mysqlDbConnection');
 const { AdminBuilder } = require('./admin');
 
 const queries = {
-    insertRow: `INSERT INTO Admin(competition, email, password) VALUES(?,?,?)`,
-    readRow: `SELECT * FROM Admin WHERE competition = ? AND email = ? AND password = ?`,
+    insertRow: `INSERT INTO Admin(email, password) VALUES(?,?)`,
+    readRow: `SELECT * FROM Admin WHERE email = ? AND password = ?`,
 }
 
 let builder = new AdminBuilder();
@@ -29,7 +29,7 @@ module.exports = class AdminsDao {
             await con.query("START TRANSACTION");
             await con.query(
                 queries.insertRow,
-                [newEntity.competition, newEntity.email, newEntity.password]
+                [newEntity.email, newEntity.password]
             );
             await con.query("COMMIT");
             return newEntity;
@@ -47,7 +47,7 @@ module.exports = class AdminsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = (await con.query(queries.readRow, [entity.competition, entity.email, entity.password]))[0];
+            let dbRow = (await con.query(queries.readRow, [entity.email, entity.password]))[0];
             await con.query("COMMIT");
 
             if (!dbRow) {
@@ -59,7 +59,6 @@ module.exports = class AdminsDao {
                 }
             }
             let entity = builder
-                    .setCompetition(dbRow.competition)
                     .setEmail(dbRow.email)
                     .setPassword(dbRow.password)
                     .build();
