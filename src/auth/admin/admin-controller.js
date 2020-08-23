@@ -26,6 +26,10 @@ module.exports = class AdminController {
             res.status(400).send({ message: "Content can not be empty!" });
             return;
         }
+        if (!req.body.admin.competition) {
+            res.status(400).send({ message: "Competition can not be empty!" });
+            return;
+        }
         if (!req.body.admin.email) {
             res.status(400).send({ message: "User/email can not be empty!" });
             return;
@@ -38,6 +42,7 @@ module.exports = class AdminController {
         const hashPassword = hash.hashSync(req.body.admin.password);
 
         const newAdmin = new AdminBuilder()
+            .setCompetition(req.body.admin.competition)
             .setEmail(req.body.admin.email)
             .setPassword(hashPassword)
             .build();
