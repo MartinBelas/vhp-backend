@@ -12,7 +12,8 @@ app.set('jwtTokenSecret', process.env.JWT_SECRET_STRING);
 const AdminRouter = require('./auth/admin/admin-routes.js');
 const LoginRouter = require('./auth/login/login-routes.js');
 const CompetitionsRouter = require('./competitions/competitions.routes.js');
-const UsersRouter = require('./users/users-routes.js');
+const YearsRouter = require('./years/years-routes.js');
+const NewsRouter = require('./news/news-routes.js');
 
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -42,7 +43,8 @@ app.use(express.json());
 AdminRouter(app);
 LoginRouter(app);
 CompetitionsRouter(app);
-UsersRouter(app);
+YearsRouter(app);
+NewsRouter(app);
 
 // This responds with "Hello World" on the homepage
 app.get('/', function (req, res) {
