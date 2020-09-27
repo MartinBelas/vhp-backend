@@ -6,8 +6,8 @@ const { YearBuilder } = require('./year');
 function getQueries(competitionPrefix) {
     return {
         insertRow: `INSERT INTO ` + competitionPrefix + `Years(vhpYear, vhpDate, acceptRegistrations) VALUES(?,?,?)`,
-        readAllRows: `SELECT * FROM ` + competitionPrefix + `Years`,
-        readLastYearRow: `SELECT * FROM ` + competitionPrefix + `Years WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + competitionPrefix + `Years)`,
+        readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + competitionPrefix + `Years`,
+        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + competitionPrefix + `Years WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + competitionPrefix + `Years)`,
         readRow: `SELECT * FROM Years WHERE Years.vhpYear = ?`,
         updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?` //TODO disable delete

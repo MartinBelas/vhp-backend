@@ -9,7 +9,6 @@ module.exports = class NewsController {
 
     static getAll = function (req, res) {
         console.log('Ctrl GET All News');
-        console.log('--- req.competition: ', req.params.competition);
         dao.find(req.params.competition)
             .then(data => {
                 res.json(data);
