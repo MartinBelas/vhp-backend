@@ -1,6 +1,7 @@
 'use strict';
 
 const YearsDao = require('./years-dao-mysql');
+const CategoriesDao = require('../categories/categories-dao-mysql');
 const { YearsItemBuilder } = require('./year');
 
 const dao = new YearsDao();
@@ -29,13 +30,32 @@ module.exports = class YearsController {
                     }
                     res.json(result.error);
                 } else {
-                    res.status(200).json(result);
+                    //TODO if req.params.withCategories ??
+                    const year = result.vhpYear;
+                    const categoriesDao = new CategoriesDao(year);
+                    categoriesDao.find(req.params.competition)
+                        .then(categoriesResult => {
+                            if (categoriesResult.error) {
+                                if (categoriesResult.suggestedStatus) {
+                                    res.status(categoriesResult.suggestedStatus);
+                                }
+                                res.json(categoriesResult.error);
+                            } else {
+                                result.categories = categoriesResult;
+                                res.status(200).json(result);
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            YearsController.responseWithDbConnectionError(res);
+                        })
                 }
             })
             .catch(err => {
                 console.error(err);
                 YearsController.responseWithDbConnectionError(res);
             })
+        //console.log('-- 2 - Year: ', year); //TODO remove
     };
 
     static get = function (req, res) {
