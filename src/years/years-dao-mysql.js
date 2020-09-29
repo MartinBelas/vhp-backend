@@ -26,13 +26,13 @@ module.exports = class YearsDao {
         return con;
     }
 
-    async create(newEntity) {
+    async create(competition, newEntity) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
             await con.query(
-                queries.insertRow,
-                [newEntity.vhpYear, newEntity.vhpDate]
+                getQueries(competition).insertRow,
+                [newEntity.vhpYear, newEntity.vhpDate, false]
             );
             await con.query("COMMIT");
             return newEntity;

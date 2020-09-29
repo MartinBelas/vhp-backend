@@ -2,7 +2,7 @@
 
 const YearsDao = require('./years-dao-mysql');
 const CategoriesDao = require('../categories/categories-dao-mysql');
-const { YearsItemBuilder } = require('./year');
+const { YearBuilder } = require('./year');
 
 const dao = new YearsDao();
 
@@ -79,18 +79,17 @@ module.exports = class YearsController {
     static create = async function (req, res) {
 
         // Validate request
-        if (!req.body.yearsItem) {
-            res.status(400).send({ message: "Content can not be empty!" });
+        if (!req.body.nextDate) {
+            res.status(400).send({ message: "Next date can not be empty!" });
             return;
         }
 
-        let newYearsItem = new YearsItemBuilder()
-            .setTitle(req.body.yearsItem.title)
-            .setContent(req.body.yearsItem.content)
-            .setAuthor(req.body.yearsItem.author)
+        let nextYearItem = new YearBuilder()
+            .setVhpYear(req.body.nextDate.substring(0, 4))
+            .setVhpDate(req.body.nextDate)
             .build();
 
-        dao.create(req.params.competition, newYearsItem)
+        dao.create(req.params.competition, nextYearItem)
             .then(data => {
                 console.log(data);
                 res.json(data);
@@ -99,6 +98,8 @@ module.exports = class YearsController {
                 console.error(err);
                 res.send(err);
             })
+
+        //TODO creatre tables for next year categories, races and registrations
     };
 
     static update = async function (req, res) {
