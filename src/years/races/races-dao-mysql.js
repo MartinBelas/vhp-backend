@@ -1,21 +1,21 @@
 'use strict';
 
 const dbConnection = require('../../mysqlDbConnection');
-const {CategoryBuilder } = require('./category');
+const {RaceBuilder } = require('./race');
 
 function getQueries(competitionPrefix, year) {
     return {
-        insertRow: `INSERT INTO ` + competitionPrefix + `Categories(id, description) VALUES(?,?)`,
-        readAllRows: `SELECT * FROM ` + competitionPrefix + `Categories` + year,
-        readRow: `SELECT * FROM ` + competitionPrefix + `Categories` + year + ` WHERE id = ?`,
-        updateRow: `UPDATE ` + competitionPrefix + `Categories` + year + ` SET description = ? WHERE id = ?`,
-        deleteRow: `DELETE FROM ` + competitionPrefix + `Categories` + year + ` WHERE id = ?`
+        insertRow: `INSERT INTO ` + competitionPrefix + `Races(id, name) VALUES(?,?)`,
+        readAllRows: `SELECT * FROM ` + competitionPrefix + `Races` + year,
+        readRow: `SELECT * FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`,
+        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET name = ? WHERE id = ?`,
+        deleteRow: `DELETE FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`
     }
 }
 
-let builder = new CategoryBuilder();
+let builder = new RaceBuilder();
 
-module.exports = class CategoriesDao {
+module.exports = class RacesDao {
 
     constructor(year) {
         this.year = year;
@@ -35,7 +35,7 @@ module.exports = class CategoriesDao {
             await con.query("START TRANSACTION");
             await con.query(
                 queries.insertRow,
-                [newEntity.id, newEntity.description]
+                [newEntity.id, newEntity.name]
             );
             await con.query("COMMIT");
             return newEntity;
@@ -54,11 +54,11 @@ module.exports = class CategoriesDao {
         try {
                         
             await con.query("START TRANSACTION");
-            const tblCategoriesName = competition + `Categories` + this.year;
-            const checkCategoriesTableQuery = "SHOW TABLES LIKE '" + tblCategoriesName + "'";
+            const tblRacesName = competition + `Races` + this.year;
+            const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesName + "'";
             let dbRows;
-            const categoriesTableExists = (await con.query(checkCategoriesTableQuery)).length;
-            if (categoriesTableExists) {
+            const racesTableExists = (await con.query(checkRacesTableQuery)).length;
+            if (racesTableExists) {
                 dbRows = await con.query(getQueries(competition, this.year).readAllRows);
             }
             await con.query("COMMIT");
@@ -112,7 +112,7 @@ module.exports = class CategoriesDao {
             await con.query("START TRANSACTION");
             await con.query(queries.updateRow, [
                 entity.id,
-                entity.description
+                entity.name
             ]);
             await con.query("COMMIT");
             return entity;
@@ -129,7 +129,7 @@ module.exports = class CategoriesDao {
     build(row) {
         return builder
             .setId(row.id)
-            .setDescription(row.description)
+            .setDescription(row.name)
             .build();
     }
 };

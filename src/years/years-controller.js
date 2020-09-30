@@ -2,6 +2,7 @@
 
 const YearsDao = require('./years-dao-mysql');
 const CategoriesDao = require('./categories/categories-dao-mysql');
+const RacesDao = require('./races/races-dao-mysql');
 const { YearBuilder } = require('./year');
 
 const dao = new YearsDao();
@@ -20,41 +21,38 @@ module.exports = class YearsController {
             })
     };
 
-    static getLast = function (req, res) {
+    static getLast = async function (req, res) {
         console.log('Ctrl GET LAST Year'); //TODO remove
-        dao.findLast(req.params.competition)
-            .then(result => {
-                if (result.error) {
-                    if (result.suggestedStatus) {
-                        res.status(result.suggestedStatus);
-                    }
-                    res.json(result.error);
-                } else {
-                    const lastYear = result.vhpYear;
-                    const categoriesDao = new CategoriesDao(lastYear);
-                    categoriesDao.find(req.params.competition)
-                        .then(categoriesResult => {
-                            if (categoriesResult.error) {
-                                if (categoriesResult.suggestedStatus) {
-                                    res.status(categoriesResult.suggestedStatus);
-                                }
-                                res.json(categoriesResult.error);
-                            } else {
-                                result.categories = categoriesResult;
-                                res.status(200).json(result);
-                            }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            YearsController.responseWithDbConnectionError(res);
-                        })
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                YearsController.responseWithDbConnectionError(res);
-            })
-        //console.log('-- 2 - Year: ', year); //TODO remove
+        const competition = req.params.competition;
+        
+        let lastYear;
+        try {
+            lastYear = (await dao.findLast(competition));
+        } catch(err) {
+            console.error(err);
+            YearsController.responseWithDbConnectionError(res);
+        }
+        
+        try {
+            const promises = [];
+
+            const categoriesDao = new CategoriesDao(lastYear.vhpYear);
+            promises.push(categoriesDao.find(competition));
+
+            const racesDao = new RacesDao(lastYear.vhpYear);
+            promises.push(racesDao.find(competition));
+
+            const result = await Promise.all(promises);
+            const categories = result[0];
+            const races = result[1];
+            
+            lastYear.setCategories(categories);
+            lastYear.setRaces(races);
+            res.status(200).json(lastYear);
+        } catch(err) {
+            console.error(err);
+            YearsController.responseWithDbConnectionError(res);
+        }
     };
 
     static get = function (req, res) {
