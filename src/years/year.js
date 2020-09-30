@@ -36,11 +36,22 @@ class Year {
         this.acceptRegistrations = builder.acceptRegistrations;
     }
 
-    updateDate(value) {
-        if (value) {
-            this.vhpDate = value;
-        }
+    setCategories(value) {
+        this.categories = value;
+        return this;
     }
+
+    setRaces(value) {
+        this.races = value;
+        return this;
+    }
+
+    //TODO remove ??
+    // updateDate(value) {
+    //     if (value) {
+    //         this.vhpDate = value;
+    //     }
+    // }
 }
 
 module.exports = { YearBuilder, Year }

@@ -1,7 +1,7 @@
 'use strict';
 
 const YearsDao = require('./years-dao-mysql');
-const CategoriesDao = require('../categories/categories-dao-mysql');
+const CategoriesDao = require('./categories/categories-dao-mysql');
 const { YearBuilder } = require('./year');
 
 const dao = new YearsDao();
@@ -30,9 +30,8 @@ module.exports = class YearsController {
                     }
                     res.json(result.error);
                 } else {
-                    //TODO if req.params.withCategories ??
-                    const year = result.vhpYear;
-                    const categoriesDao = new CategoriesDao(year);
+                    const lastYear = result.vhpYear;
+                    const categoriesDao = new CategoriesDao(lastYear);
                     categoriesDao.find(req.params.competition)
                         .then(categoriesResult => {
                             if (categoriesResult.error) {
@@ -140,7 +139,7 @@ module.exports = class YearsController {
     static responseWithDbConnectionError = function (res) {
         res.status(503);
         res.send({
-            "message":"Error when connecting to db."
+            "message":"DB Error."
         });
     };
 }

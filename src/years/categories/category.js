@@ -12,12 +12,25 @@ class CategoryBuilder {
         return this;
     }
 
+    isValidNumber(value){
+        return value >= 0 && value <= 999;
+    }
+    validateId(id) {
+        if (id.length != 4) return false;
+        if (id.substring(0, 1) != 'M' && id.substring(0, 1) != 'F') return false;
+        if (!this.isValidNumber(id.substring(1, 4))) return false;
+        return true;
+    }
+
     build() {
         if (!(this.id)) {
             throw new Error('Category id is missing.');
         }
+        if (!(this.validateId(this.id))) {
+            throw new Error('Category id is not valid.');
+        }
         if (!(this.description)) {
-            throw new Error('description description is missing.');
+            throw new Error('Description is missing.');
         }
 
         return new Category(this);

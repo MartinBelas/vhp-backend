@@ -2,19 +2,44 @@
 
 const dbConnection = require('../mysqlDbConnection');
 const { YearBuilder } = require('./year');
+const { CategoryBuilder } = require('./categories/category');
+const { RaceBuilder } = require('./races/race');
 
-function getQueries(competitionPrefix) {
+function getYearsQueries(competitionPrefix) {
+    const tblName = competitionPrefix + `Years`;
     return {
-        insertRow: `INSERT INTO ` + competitionPrefix + `Years(vhpYear, vhpDate, acceptRegistrations) VALUES(?,?,?)`,
-        readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + competitionPrefix + `Years`,
-        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + competitionPrefix + `Years WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + competitionPrefix + `Years)`,
-        readRow: `SELECT * FROM Years WHERE Years.vhpYear = ?`,
-        updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
-        deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?` //TODO disable delete
+        insertRow: `INSERT INTO ` + tblName + ` (vhpYear, vhpDate, acceptRegistrations) VALUES(?,?,?)`,
+        readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName,
+        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + competitionPrefix + `Years)`,
+        readRow: `SELECT * FROM ` + tblName + ` WHERE Years.vhpYear = ?`,
+        //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
+        //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
+    }
+}
+
+function getCategoriesQueries(competitionPrefix, year) {
+    const tblName = competitionPrefix + `Categories` + year;
+    return {
+        insertRow: `INSERT INTO ` + tblName + ` Years(id, description) VALUES(?,?)`,
+        readAllRows: `SELECT * FROM ` + tblName,
+        //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
+        //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
+    }
+}
+
+function getRacesQueries(competitionPrefix, year) {
+    const tblName = competitionPrefix + `Races` + year;
+    return {
+        insertRow: `INSERT INTO ` + tblName + ` Years(id, description) VALUES(?,?)`,
+        readAllRows: `SELECT * FROM ` + tblName,
+        //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
+        //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
     }
 }
 
 let builder = new YearBuilder();
+let categoryBuilder = new CategoryBuilder();
+let raceBuilder = new RaceBuilder();
 
 module.exports = class YearsDao {
 
@@ -74,10 +99,24 @@ module.exports = class YearsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = await con.query(getQueries(competition).readLastYearRow);
+            let dbRowYear = await con.query(getYearsQueries(competition).readLastYearRow);
+            let entity = this.build(dbRowYear[0]);
+            // //const tblCategoriesName = competition + `Categories` + entity.vhpYear;
+            // const tblCategoriesName = "vhpCategories2020";
+            // const checkCategoriesTableQuery = "SHOW TABLES LIKE `" + tblCategoriesName + "`";
+            // if (con.query(checkCategoriesTableQuery).length > 0) {
+            //     let dbRowsCategories = await con.query(getCategoriesQueries(competition, 2020).readAllRows);
+            // }
+            // const tblRacesName = competition + `Races` + entity.vhpYear;
+            // const checkRacesTableQuery = "SHOW TABLES LIKE `" + tblRacesName + "`";
+            // console.log('/-----> con.query(checkRacesTableQuery) : ', con.query(checkRacesTableQuery));
+            // console.log('/-----> con.query(checkRacesTableQuery.length) : ', con.query(checkRacesTableQuery).length);
+            // if (con.query(checkRacesTableQuery).length > 0) {
+            //     let dbRowsRaces = await con.query(getRacesQueries(competition, entity.vhpYear).readAllRows);
+            // }
             await con.query("COMMIT");
 
-            if (!dbRow) {
+            if (!dbRowYear) {
                 return {
                     "suggestedStatus": 404,
                     "error": {
@@ -85,7 +124,23 @@ module.exports = class YearsDao {
                     }
                 }
             }
-            let entity = this.build(dbRow[0]);
+
+            if (typeof dbRowsCategories !== 'undefined') {
+                const categories = [];
+                dbRowsCategories.map(row => {
+                    categories.push(this.buildCategory(row));
+                });
+                if (categories.length > 0) entity.setCategories(categories);
+            }
+
+            // if (typeof dbRowsRaces !== 'undefined') {
+            //     const races = [];
+            //     dbRowsRaces.map(row => {
+            //         races.push(this.buildRace(row));
+            //     });
+            //     if (races.length > 0) entity.setRaces(races);
+            // }
+
             return entity;
         } catch (ex) {
             console.log(ex);
@@ -123,47 +178,42 @@ module.exports = class YearsDao {
     }
 
     async update(entity) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            await con.query(queries.updateRow, [
-                entity.vhpDate,
-                entity.vhpYear
-            ]);
-            await con.query("COMMIT");
-            return entity;
-        } catch (ex) {
-            await con.query("ROLLBACK");
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
+        return {
+            "suggestedStatus": 400,
+            "error": {
+                "message": "This operation is not supported."
+            }
         }
     }
 
-    // async remove(id) {
-    //     let con = await dbConnection();
-    //     try {
-    //         await con.query("START TRANSACTION");
-    //         await con.query(queries.deleteRow, [id]);
-    //         await con.query("COMMIT");
-    //         return true;
-    //     } catch (ex) {
-    //         await con.query("ROLLBACK");
-    //         console.log(ex);
-    //         throw ex;
-    //     } finally {
-    //         await con.release();
-    //         await con.destroy();
-    //     }
-    // }
+    async remove(id) {
+        return {
+            "suggestedStatus": 400,
+            "error": {
+                "message": "This operation is not supported."
+            }
+        }
+    }
 
     build(row) {
         return builder
             .setVhpYear(row.vhpYear)
             .setVhpDate(row.vhpDate)
             .setAcceptRegistrations(row.acceptRegistrations)
+            .build();
+    }
+
+    buildCategory(row) {
+        return categoryBuilder
+            .setId(row.id)
+            .setDescription(row.description)
+            .build();
+    }
+
+    buildRace(row) {
+        return raceBuilder
+            .setId(row.id)
+            .setName(row.name)
             .build();
     }
 };

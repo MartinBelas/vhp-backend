@@ -1,6 +1,6 @@
 'use strict';
 
-const dbConnection = require('../mysqlDbConnection');
+const dbConnection = require('../../mysqlDbConnection');
 const {CategoryBuilder } = require('./category');
 
 function getQueries(competitionPrefix, year) {
@@ -52,12 +52,20 @@ module.exports = class CategoriesDao {
     async find(competition) {
         let con = await dbConnection();
         try {
+                        
             await con.query("START TRANSACTION");
-            let dbRows = await con.query(getQueries(competition, this.year).readAllRows);
+            //const tblCategoriesName = competition + `Categories` + entity.vhpYear;
+            const tblCategoriesName = "vhpCategories2020";
+            const checkCategoriesTableQuery = "SHOW TABLES LIKE '" + tblCategoriesName + "'";
+            let dbRows;
+            const categoriesTableExists = (await con.query(checkCategoriesTableQuery)).length;
+            if (categoriesTableExists) {
+                dbRows = await con.query(getQueries(competition, this.year).readAllRows);
+            }
             await con.query("COMMIT");
 
             if (!dbRows) {
-                throw { "message": "No data from db." };
+                return [];
             }
 
             let entities = dbRows.map(row => {
@@ -118,23 +126,6 @@ module.exports = class CategoriesDao {
             await con.destroy();
         }
     }
-
-    // async remove(id) {
-    //     let con = await dbConnection();
-    //     try {
-    //         await con.query("START TRANSACTION");
-    //         await con.query(queries.deleteRow, [id]);
-    //         await con.query("COMMIT");
-    //         return true;
-    //     } catch (ex) {
-    //         await con.query("ROLLBACK");
-    //         console.log(ex);
-    //         throw ex;
-    //     } finally {
-    //         await con.release();
-    //         await con.destroy();
-    //     }
-    // }
 
     build(row) {
         return builder
