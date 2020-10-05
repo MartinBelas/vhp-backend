@@ -81,12 +81,19 @@ module.exports = class YearsController {
             return;
         }
 
-        let nextYearItem = new YearBuilder()
+        let nextYear = new YearBuilder()
             .setVhpYear(req.body.nextDate.substring(0, 4))
             .setVhpDate(req.body.nextDate)
+            .setAcceptRegistrations(req.body.acceptRegistrations)
             .build();
 
-        dao.create(req.params.competition, nextYearItem)
+        const categories = req.body.categories;
+        const races = req.body.races;
+            
+        nextYear.setCategories(categories);
+        nextYear.setRaces(races);
+
+        dao.create(req.params.competition, nextYear)
             .then(data => {
                 console.log(data);
                 res.json(data);

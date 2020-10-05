@@ -20,7 +20,8 @@ function getYearsQueries(competitionPrefix) {
 function getCategoriesQueries(competitionPrefix, year) {
     const tblName = competitionPrefix + `Categories` + year;
     return {
-        insertRow: `INSERT INTO ` + tblName + ` Years(id, description) VALUES(?,?)`,
+        createTable: `CREATE TABLE ` + tblName + ` (id varchar(4), description varchar(50))`,
+        insertRow: `INSERT INTO ` + tblName + ` (id, description) VALUES(?,?)`,
         readAllRows: `SELECT * FROM ` + tblName,
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
@@ -30,7 +31,8 @@ function getCategoriesQueries(competitionPrefix, year) {
 function getRacesQueries(competitionPrefix, year) {
     const tblName = competitionPrefix + `Races` + year;
     return {
-        insertRow: `INSERT INTO ` + tblName + ` Years(id, description) VALUES(?,?)`,
+        createTable: `CREATE TABLE ` + tblName + ` (id int, name varchar(50))`,
+        insertRow: `INSERT INTO ` + tblName + ` (id, name) VALUES(?,?)`,
         readAllRows: `SELECT * FROM ` + tblName,
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
@@ -55,10 +57,29 @@ module.exports = class YearsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
+            const acceptRegistrations = newEntity.acceptRegistrations === true ? newEntity.acceptRegistrations : false;
             await con.query(
-                getQueries(competition).insertRow,
-                [newEntity.vhpYear, newEntity.vhpDate, false]
+                getYearsQueries(competition).insertRow,
+                [newEntity.vhpYear, newEntity.vhpDate, acceptRegistrations]
             );
+            await con.query(
+                getCategoriesQueries(competition, newEntity.vhpYear).createTable
+            );
+            newEntity.categories.forEach(category => {
+                con.query(
+                    getCategoriesQueries(competition, newEntity.vhpYear).insertRow,
+                    [category.id, category.description]
+                );
+            });
+            await con.query(
+                getRacesQueries(competition, newEntity.vhpYear).createTable
+            );
+            newEntity.races.forEach(race => {
+                con.query(
+                    getRacesQueries(competition, newEntity.vhpYear).insertRow,
+                    [race.frontendId, race.name]
+                );
+            });
             await con.query("COMMIT");
             return newEntity;
         } catch (ex) {
