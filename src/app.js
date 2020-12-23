@@ -58,6 +58,8 @@ app.post('/', function (req, res) {
     res.status(201).json(req.body);
 })
 
-app.listen(config.port, function () {
-    console.log('app listening at port %s', config.port);
+const PORT = process.env.PORT || config.port || 3000;
+
+app.listen(PORT, function () {
+    console.log('app listening at port %s', PORT);
 });
