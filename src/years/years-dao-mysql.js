@@ -96,7 +96,7 @@ module.exports = class YearsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRows = await con.query(getQueries(competition).readAllRows);
+            let dbRows = await con.query(getYearsQueries(competition).readAllRows);
             await con.query("COMMIT");
 
             if (!dbRows) {
