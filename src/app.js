@@ -28,6 +28,8 @@ app.use(function (req, res, next) {
     }
 });
 
+app.use(express.static("public"));
+
 app.use(function (req, res, next) {
 
     if (req.headers['api-key'] && (req.headers['api-key']===process.env.API_KEY)) {
@@ -45,18 +47,6 @@ LoginRouter(app);
 CompetitionsRouter(app);
 YearsRouter(app);
 NewsRouter(app);
-
-// This responds with "Hello World" on the homepage
-app.get('/', function (req, res) {
-    console.log("Got a GET request for the homepage");
-    res.send('Hello GET');
-})
-
-app.post('/', function (req, res) {
-    console.log("Got a POST request for the homepage, data: ", req.body);
-    //res.status(201).send('Hello POST, data: ' + JSON.stringify(req.body));
-    res.status(201).json(req.body);
-})
 
 const PORT = process.env.PORT || config.port || 3000;
 
