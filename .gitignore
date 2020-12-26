@@ -104,3 +104,6 @@ dist
 .tern-port
 package-lock.json
 .vscode/launch.json
+
+# Frontend fetched from its github repo
+public/
