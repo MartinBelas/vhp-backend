@@ -10,9 +10,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github..."
+    "url": "https://github.com/MartinBelas/vhp-backend"
   },
-  "author": "MB",
+  "author": "Martin Belas",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.0",
