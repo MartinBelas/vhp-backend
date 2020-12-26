@@ -23,7 +23,6 @@
     "moment": "^2.17.1",
     "moment-timezone": "^0.5.13",
     "mongoose": "5.9.15",
-    "node-uuid": "^1.4.8",
     "promise-mysql": "4.1.3",
     "swagger-ui-express": "^2.0.13",
     "sync-request": "^4.0.2",
