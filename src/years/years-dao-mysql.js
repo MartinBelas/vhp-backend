@@ -9,10 +9,10 @@ function getYearsQueries(competitionPrefix) {
     const tblName = competitionPrefix + `Years`;
     return {
         insertRow: `INSERT INTO ` + tblName + ` (vhpYear, vhpDate, acceptRegistrations) VALUES(?,?,?)`,
-        readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName,
-        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
+        readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName,
+        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE Years.vhpYear = ?`,
-        readNextDateRow: `SELECT vhpYear, vhpDate, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`
+        readNextDateRow: `SELECT * FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
     }
@@ -248,6 +248,7 @@ module.exports = class YearsDao {
         return builder
             .setVhpYear(row.vhpYear)
             .setVhpDate(row.vhpDate)
+            .setVhpCounter(row.vhpCounter)
             .setAcceptRegistrations(row.acceptRegistrations)
             .build();
     }

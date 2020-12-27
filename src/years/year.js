@@ -12,6 +12,11 @@ class YearBuilder {
         return this;
     }
 
+    setVhpCounter(value) {
+        this.vhpCounter = value;
+        return this;
+    }
+
     setAcceptRegistrations(value) {
         this.acceptRegistrations = value;
         return this;
@@ -24,6 +29,9 @@ class YearBuilder {
         if (!(this.vhpDate)) {
             throw new Error('Date is missing.');
         }
+        if (!(this.vhpCounter)) {
+            throw new Error('Counter is missing.');
+        }
 
         return new Year(this);
     }
@@ -34,6 +42,7 @@ class Year {
         this.vhpYear = builder.vhpYear;
         this.vhpDate = builder.vhpDate;
         this.acceptRegistrations = builder.acceptRegistrations;
+        this.vhpCounter = builder.vhpCounter;
     }
 
     setCategories(value) {
