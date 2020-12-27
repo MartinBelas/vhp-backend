@@ -55,6 +55,20 @@ module.exports = class YearsController {
         }
     };
 
+    static getNext = async function (req, res) {
+        console.log('Ctrl GET Next Date'); //TODO remove
+        const competition = req.params.competition;
+        
+        let nextDate;
+        try {
+            nextDate = (await dao.findNext(competition));
+            res.status(200).json(nextDate);
+        } catch(err) {
+            console.error(err);
+            YearsController.responseWithDbConnectionError(res);
+        }
+    };
+
     static get = function (req, res) {
         dao.findById(req.params.competition, req.params.id)
             .then(result => {

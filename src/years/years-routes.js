@@ -11,6 +11,7 @@ module.exports = function YearsRouter(app) {
 
     router.get(apiPath, controller.getAll);
     router.get(apiPath + `/last`, controller.getLast);
+    router.get(apiPath + `/next`, controller.getNext);
     router.get(apiPath + `/:id`, controller.get);
 	
     router.post(apiPath + `/`, controller.create);

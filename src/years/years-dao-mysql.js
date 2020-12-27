@@ -10,8 +10,9 @@ function getYearsQueries(competitionPrefix) {
     return {
         insertRow: `INSERT INTO ` + tblName + ` (vhpYear, vhpDate, acceptRegistrations) VALUES(?,?,?)`,
         readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName,
-        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + competitionPrefix + `Years)`,
+        readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE Years.vhpYear = ?`,
+        readNextDateRow: `SELECT vhpYear, vhpDate, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
     }
@@ -115,6 +116,33 @@ module.exports = class YearsDao {
             await con.destroy();
         }
     }
+
+    async findNext(competition) {
+        let con = await dbConnection();
+        try {
+            await con.query("START TRANSACTION");
+            let dbNextDate = await con.query(getYearsQueries(competition).readNextDateRow);
+            let entity = this.build(dbNextDate[0]);
+            await con.query("COMMIT");
+
+            if (!dbNextDate) {
+                return {
+                    "suggestedStatus": 404,
+                    "error": {
+                        "message": "Next date not found."
+                    }
+                }
+            }
+
+            return entity;
+        } catch (ex) {
+            console.log(ex);
+            throw ex;
+        } finally {
+            await con.release();
+            await con.destroy();
+        }
+    }    
 
     async findLast(competition) {
         let con = await dbConnection();
