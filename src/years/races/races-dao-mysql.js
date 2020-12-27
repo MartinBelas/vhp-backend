@@ -129,7 +129,7 @@ module.exports = class RacesDao {
     build(row) {
         return builder
             .setId(row.id)
-            .setDescription(row.name)
+            .setName(row.name)
             .build();
     }
 };
