@@ -51,8 +51,8 @@ module.exports = class LoginDao {
             if (!dbRow) {
                 return resultBuilder
                         .setIsOk(false)
-                        .setErrMessage('Record not found.')
                         .setSuggestedStatus(404)
+                        .setErrMessage('Record not found.')
                         .build();
             }
 
@@ -63,6 +63,7 @@ module.exports = class LoginDao {
                     .build();
             return resultBuilder
                         .setIsOk(true)
+                        .setSuggestedStatus(200)
                         .setData(entity)
                         .build();
         } catch (ex) {
