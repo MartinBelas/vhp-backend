@@ -3,21 +3,20 @@
 const dbConnection = require('../mysqlDbConnection');
 const { NewsItemBuilder } = require('./news');
 
-// var competitionPrefix;
-
 function getQueries(competitionPrefix) {
+    const tblName = competitionPrefix + `News`;
     return {
-        insertRow: `INSERT INTO ` + competitionPrefix + `News(id, title, content, author) VALUES(?,?,?,?)`,
-        readAllRows: `SELECT * FROM ` + competitionPrefix + `News`,
-        readRow: `SELECT * FROM News WHERE News.id = ?`,
-        updateRow: `UPDATE News SET News.title = ?, News.content = ?, News.author = ? WHERE News.id = ?`,
-        deleteRow: `DELETE FROM News WHERE News.id = ?`
+        insertRow: `INSERT INTO ` + tblName + `(id, title, content, author) VALUES(?,?,?,?)`,
+        readAllRows: `SELECT * FROM ` + tblName,
+        readRow: `SELECT * FROM ` + tblName + ` WHERE id = ?`,
+        updateRow: `UPDATE ` + tblName + ` SET title = ?, content = ?, author = ? WHERE id = ?`,
+        deleteRow: `DELETE FROM ` + tblName + ` WHERE id = ?`
     }
 }
 
 let builder = new NewsItemBuilder();
 
-module.exports = class NewssDao {
+module.exports = class NewsDao {
 
     async getDbConnection() {
         if (!this.dbConnectionConfig) {
@@ -27,12 +26,12 @@ module.exports = class NewssDao {
         return con;
     }
 
-    async create(newEntity) {
+    async create(competition, newEntity) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
             await con.query(
-                queries.insertRow,
+                getQueries(competition).insertRow,
                 [newEntity.id, newEntity.title, newEntity.content, newEntity.author]
             );
             await con.query("COMMIT");
@@ -64,6 +63,7 @@ module.exports = class NewssDao {
                     .setTitle(row.title)
                     .setContent(row.content)
                     .setAuthor(row.author)
+                    .setDate(row.timestamp)
                     .build();
             });
             return entities;
@@ -76,11 +76,11 @@ module.exports = class NewssDao {
         }
     }
 
-    async findById(id) {
+    async findById(competition, id) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = (await con.query(queries.readRow, [id]))[0];
+            let dbRow = (await con.query(getQueries(competition).readRow, [id]))[0];
             await con.query("COMMIT");
 
             if (!dbRow) {
@@ -107,11 +107,11 @@ module.exports = class NewssDao {
         }
     }
 
-    async update(entity) {
+    async update(competition, entity) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            await con.query(queries.updateRow, [
+            await con.query(getQueries(competition).updateRow, [
                 entity.title,
                 entity.content,
                 entity.author,
@@ -129,11 +129,11 @@ module.exports = class NewssDao {
         }
     }
 
-    async remove(id) {
+    async remove(competition, id) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            await con.query(queries.deleteRow, [id]);
+            await con.query(getQueries(competition).deleteRow, [id]);
             await con.query("COMMIT");
             return true;
         } catch (ex) {

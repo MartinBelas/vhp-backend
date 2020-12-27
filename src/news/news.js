@@ -23,6 +23,11 @@ class NewsItemBuilder {
         return this;
     }
 
+    setDate(value) {
+        this.date = value;
+        return this;
+    }
+
     build() {
         if (!(this.title)) {
             throw new Error('Title is missing.');
@@ -49,6 +54,7 @@ class News {
         this.title = builder.title;
         this.content = builder.content;
         this.author = builder.author;
+        this.date = builder.date;
     }
 
     updateTitle(value) {
