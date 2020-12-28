@@ -61,6 +61,7 @@ module.exports = class LoginDao {
                     .setEmail(dbRow.email)
                     .setPassword(dbRow.password)
                     .build();
+                    
             return resultBuilder
                         .setIsOk(true)
                         .setSuggestedStatus(200)

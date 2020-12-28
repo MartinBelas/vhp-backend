@@ -39,62 +39,82 @@ module.exports = class NewsController {
 
     static create = async function (req, res) {
 
-        // Validate request
-        if (!req.body.newsItem) {
-            res.status(400).send({ message: "Content can not be empty!" });
-            return;
-        }
+        
+        AdminController.authenticate(req, res)
+            .then( authenticationResult => {
 
-        let newNewsItem = new NewsItemBuilder()
-            .setTitle(req.body.newsItem.title)
-            .setContent(req.body.newsItem.content)
-            .setAuthor(req.body.newsItem.author)
-            .build();
+                // Validate request
+                if (!req.body.newsItem) {
+                    res.status(400).send({ message: "Content can not be empty!" });
+                    return;
+                }
 
-        dao.create(req.params.competition, newNewsItem)
-            .then(data => {
-                console.log(data);
-                res.json(data);
-            })
-            .catch(err => {
-                console.error(err);
-                res.send(err);
+                let newNewsItem = new NewsItemBuilder()
+                    .setTitle(req.body.newsItem.title)
+                    .setContent(req.body.newsItem.content)
+                    .setAuthor(req.body.newsItem.author)
+                    .build();
+
+                dao.create(req.params.competition, newNewsItem)
+                    .then(data => {
+                        console.log(data);
+                        res.json(data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        res.send(err);
+                    })
+            }).catch( authenticationFailure => {
+                res.status(authenticationFailure).end();
             })
     };
 
     static update = async function (req, res) {
-        if (!req.params.id) {
-            res.status(400).send({ message: "Id can not be empty!" });
-            return;
-        }
-        let newsItem = await dao.findById(req.params.competition, req.params.id);
-        if (req.body.title) { newsItem.updateTitle(req.body.title) };
-        if (req.body.content) { newsItem.updateContent(req.body.content) };
-        dao.update(req.params.competition, newsItem)
-            .then(data => {
-                console.log(data);
-                data = JSON.parse(JSON.stringify(data));
+
+        AdminController.authenticate(req, res)
+            .then( authenticationResult => {
+
+                if (!req.params.id) {
+                    res.status(400).send({ message: "Id can not be empty!" });
+                    return;
+                }
+                let newsItem = dao.findById(req.params.competition, req.params.id);
+                if (req.body.title) { newsItem.updateTitle(req.body.title) };
+                if (req.body.content) { newsItem.updateContent(req.body.content) };
+                dao.update(req.params.competition, newsItem)
+                    .then(data => {
+                        console.log(data);
+                        data = JSON.parse(JSON.stringify(data));
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        res.send(err);
+                    });
+            }).catch( authenticationFailure => {
+                res.status(authenticationFailure).end();
             })
-            .catch(err => {
-                console.error(err);
-                res.send(err);
-            });
     };
 
     static delete = function (req, res) {
-        if (!req.params.id) {
-            res.status(400).send({ message: "Id can not be empty!" });
-            return;
-        }
-        dao.remove(req.params.competition, req.params.id)
-            .then(data => {
-                console.log(data);
-                res.json(data);
+
+        AdminController.authenticate(req, res)
+            .then( authenticationResult => {
+                if (!req.params.id) {
+                    res.status(400).send({ message: "Id can not be empty!" });
+                    return;
+                }
+                dao.remove(req.params.competition, req.params.id)
+                    .then(data => {
+                        console.log(data);
+                        res.json(data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        res.send(err);
+                    });
+            }).catch( authenticationFailure => {
+                res.status(authenticationFailure).end();
             })
-            .catch(err => {
-                console.error(err);
-                res.send(err);
-            });
     };
 
     static responseWithDbConnectionError = function (res) {

@@ -4,10 +4,7 @@ require('custom-env').env();
 const config = require('./config.js');
 
 const express = require('express');
-const jwt = require('jwt-simple');
 const app = express();
-
-app.set('jwtTokenSecret', process.env.JWT_SECRET_STRING);
 
 const AdminRouter = require('./auth/admin/admin-routes.js');
 const LoginRouter = require('./auth/login/login-routes.js');
