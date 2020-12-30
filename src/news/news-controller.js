@@ -8,8 +8,8 @@ const dao = new NewsDao();
 module.exports = class NewsController {
 
     static getAll = function (req, res) {
-        console.log('Ctrl GET All News');
-        dao.find(req.params.competition)
+        console.log('Ctrl GET All News - count: ', req.query.count);
+        dao.find(req.params.competition, req.query.count)
             .then(data => {
                 res.json(data);
             })

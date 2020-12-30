@@ -3,11 +3,12 @@
 const dbConnection = require('../mysqlDbConnection');
 const { NewsItemBuilder } = require('./news');
 
-function getQueries(competitionPrefix) {
+function getQueries(competitionPrefix, count) {
     const tblName = competitionPrefix + `News`;
     return {
         insertRow: `INSERT INTO ` + tblName + `(id, title, content, author) VALUES(?,?,?,?)`,
         readAllRows: `SELECT * FROM ` + tblName,
+        readCountRows: `SELECT * FROM ` + tblName + ` ORDER BY timestamp DESC LIMIT ` + count,
         readRow: `SELECT * FROM ` + tblName + ` WHERE id = ?`,
         updateRow: `UPDATE ` + tblName + ` SET title = ?, content = ?, author = ? WHERE id = ?`,
         deleteRow: `DELETE FROM ` + tblName + ` WHERE id = ?`
@@ -46,11 +47,16 @@ module.exports = class NewsDao {
         }
     }
 
-    async find(competition) {
+    async find(competition, count) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRows = await con.query(getQueries(competition).readAllRows);
+            let dbRows;
+            if (count !== undefined && count>0) {
+                dbRows = await con.query(getQueries(competition, count).readCountRows);
+            } else {
+                dbRows = await con.query(getQueries(competition, 0).readAllRows);
+            }
             await con.query("COMMIT");
 
             if (!dbRows) {
@@ -80,7 +86,7 @@ module.exports = class NewsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = (await con.query(getQueries(competition).readRow, [id]))[0];
+            let dbRow = (await con.query(getQueries(competition, 0).readRow, [id]))[0];
             await con.query("COMMIT");
 
             if (!dbRow) {
@@ -111,7 +117,7 @@ module.exports = class NewsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            await con.query(getQueries(competition).updateRow, [
+            await con.query(getQueries(competition, 0).updateRow, [
                 entity.title,
                 entity.content,
                 entity.author,
@@ -133,7 +139,7 @@ module.exports = class NewsDao {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            await con.query(getQueries(competition).deleteRow, [id]);
+            await con.query(getQueries(competition, 0).deleteRow, [id]);
             await con.query("COMMIT");
             return true;
         } catch (ex) {
