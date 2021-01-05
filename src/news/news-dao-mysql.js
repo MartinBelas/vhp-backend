@@ -7,7 +7,7 @@ function getQueries(competitionPrefix, count) {
     const tblName = competitionPrefix + `News`;
     return {
         insertRow: `INSERT INTO ` + tblName + `(id, title, content, author) VALUES(?,?,?,?)`,
-        readAllRows: `SELECT * FROM ` + tblName,
+        readAllRows: `SELECT * FROM ` + tblName + ` ORDER BY timestamp DESC`,
         readCountRows: `SELECT * FROM ` + tblName + ` ORDER BY timestamp DESC LIMIT ` + count,
         readRow: `SELECT * FROM ` + tblName + ` WHERE id = ?`,
         updateRow: `UPDATE ` + tblName + ` SET title = ?, content = ?, author = ? WHERE id = ?`,
@@ -102,6 +102,7 @@ module.exports = class NewsDao {
                 .setTitle(dbRow.title)
                 .setContent(dbRow.content)
                 .setAuthor(dbRow.author)
+                .setDate(dbRow.timestamp)
                 .build();
             return entity;
         } catch (ex) {
@@ -136,6 +137,7 @@ module.exports = class NewsDao {
     }
 
     async remove(competition, id) {
+        console.log('REMOVE news item, id:', id);
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");

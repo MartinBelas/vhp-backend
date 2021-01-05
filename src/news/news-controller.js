@@ -1,5 +1,6 @@
 'use strict';
 
+const AdminController = require('../auth/admin/admin-controller.js');
 const NewsDao = require('./news-dao-mysql');
 const { NewsItemBuilder } = require('./news');
 
@@ -44,15 +45,15 @@ module.exports = class NewsController {
             .then( authenticationResult => {
 
                 // Validate request
-                if (!req.body.newsItem) {
+                if (!req.body.news) {
                     res.status(400).send({ message: "Content can not be empty!" });
                     return;
                 }
 
                 let newNewsItem = new NewsItemBuilder()
-                    .setTitle(req.body.newsItem.title)
-                    .setContent(req.body.newsItem.content)
-                    .setAuthor(req.body.newsItem.author)
+                    .setTitle(req.body.news.title)
+                    .setContent(req.body.news.content)
+                    .setAuthor(authenticationResult.user)
                     .build();
 
                 dao.create(req.params.competition, newNewsItem)
@@ -78,13 +79,12 @@ module.exports = class NewsController {
                     res.status(400).send({ message: "Id can not be empty!" });
                     return;
                 }
-                let newsItem = dao.findById(req.params.competition, req.params.id);
-                if (req.body.title) { newsItem.updateTitle(req.body.title) };
-                if (req.body.content) { newsItem.updateContent(req.body.content) };
-                dao.update(req.params.competition, newsItem)
+                let news = dao.findById(req.params.competition, req.params.id);
+                if (req.body.title) { news.updateTitle(req.body.title) };
+                if (req.body.content) { news.updateContent(req.body.content) };
+                dao.update(req.params.competition, news)
                     .then(data => {
-                        console.log(data);
-                        data = JSON.parse(JSON.stringify(data));
+                        res.json(data);
                     })
                     .catch(err => {
                         console.error(err);
@@ -110,7 +110,7 @@ module.exports = class NewsController {
                     })
                     .catch(err => {
                         console.error(err);
-                        res.send(err);
+                        res.send(err.message);
                     });
             }).catch( authenticationFailure => {
                 res.status(authenticationFailure).end();
