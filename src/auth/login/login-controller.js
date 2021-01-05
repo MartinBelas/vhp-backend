@@ -52,21 +52,11 @@ module.exports = class LoginController {
                             }
                         )
 
-                        // //create the refresh token with the longer lifespan
-                        // let refreshToken = jwt.sign(userInfo, process.env.REFRESH_TOKEN_SECRET, {
-                        //     algorithm: "HS256",
-                        //     expiresIn: process.env.REFRESH_TOKEN_LIFE
-                        // })
-
-                        //jwt({ secret: 'shhhhhhared-secret' });
-                        // const jwt = require('jsonwebtoken');
-                        // var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
-
-                        //store the refresh token in the user array
-                        //users[userInfo.email].refreshToken = refreshToken
-                        
-                        
                         userInfo.accessToken = accessToken;
+
+                        // store the  token in the user array //TODO - do I need it?
+                        AdminController.users[userInfo.email] = accessToken;
+                        console.log('Logged ADMINS: ', AdminController.users);
                         
                         result.data = userInfo;
                         res.json(result);

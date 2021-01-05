@@ -9,6 +9,8 @@ const dao = new AdminDao();
 
 module.exports = class AdminController {
 
+    static users = new Map();
+
     static create = async function (req, res) {
 
         console.log('AdminController, create... ');
@@ -66,26 +68,31 @@ module.exports = class AdminController {
     };
 
     static authenticate = function(req, res) {
-        
+
         return new Promise((resolve, reject) => {
         
+            //TODO for new admin creation only
+            // if ((req.body === undefined) || (req.body.secret === undefined) || (req.body.secret !== process.env.SUPERADMIN_SECRET)) {
+                //     reject(400);
+                // }
+
             if (typeof req.headers.authorization === "undefined") {
                 reject(401);
-            } else {
+            } 
 
-                let token = req.headers.authorization.split(" ")[1];
-                jwt.verify(token, "secret", (err) => {
-                    if (err) {
-                        reject(403);
+            let token = req.headers.authorization;
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, data) => {
+                if (err) {
+                    reject(403);
+                } else {
+                    const result = {
+                        "isOk": true,
+                        "status": 200,
+                        "user": data.id
                     }
-                });
-
-                if ((req.body === undefined) || (req.body.secret === undefined) || (req.body.secret !== process.env.SUPERADMIN_SECRET)) {
-                    reject(400);
+                    resolve(result);
                 }
-            }
-
-            resolve(200);
+            });
         });
     }
 }
