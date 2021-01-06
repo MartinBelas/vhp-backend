@@ -73,15 +73,17 @@ module.exports = class NewsController {
     static update = async function (req, res) {
 
         AdminController.authenticate(req, res)
-            .then( authenticationResult => {
-
+            .then( () => {
                 if (!req.params.id) {
                     res.status(400).send({ message: "Id can not be empty!" });
                     return;
                 }
                 let news = dao.findById(req.params.competition, req.params.id);
-                if (req.body.title) { news.updateTitle(req.body.title) };
-                if (req.body.content) { news.updateContent(req.body.content) };
+                return news;
+            })
+            .then( (news) => {
+                if (req.body.news.title) { news.updateTitle(req.body.news.title) };
+                if (req.body.news.content) { news.updateContent(req.body.news.content) };
                 dao.update(req.params.competition, news)
                     .then(data => {
                         res.json(data);
@@ -98,7 +100,7 @@ module.exports = class NewsController {
     static delete = function (req, res) {
 
         AdminController.authenticate(req, res)
-            .then( authenticationResult => {
+            .then( () => {
                 if (!req.params.id) {
                     res.status(400).send({ message: "Id can not be empty!" });
                     return;
