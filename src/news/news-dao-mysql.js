@@ -28,6 +28,7 @@ module.exports = class NewsDao {
     }
 
     async create(competition, newEntity) {
+        console.log(' -- create: ', newEntity);
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
@@ -137,7 +138,6 @@ module.exports = class NewsDao {
     }
 
     async remove(competition, id) {
-        console.log('REMOVE news item, id:', id);
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");

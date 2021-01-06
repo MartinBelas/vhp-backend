@@ -56,7 +56,6 @@ module.exports = class LoginController {
 
                         // store the  token in the user array //TODO - do I need it?
                         AdminController.users[userInfo.email] = accessToken;
-                        console.log('Logged ADMINS: ', AdminController.users);
                         
                         result.data = userInfo;
                         res.json(result);
