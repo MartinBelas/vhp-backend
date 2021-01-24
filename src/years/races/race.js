@@ -7,8 +7,8 @@ class RaceBuilder {
         return this;
     }
     
-    setName(value) {
-        this.Name = value;
+    setDescription(value) {
+        this.description = value;
         return this;
     }
 
@@ -16,7 +16,7 @@ class RaceBuilder {
         if (!(this.id)) {
             throw new Error('Race id is missing.');
         }
-        if (!(this.Name)) {
+        if (!(this.description)) {
             throw new Error('Race name is missing.');
         }
 
@@ -27,12 +27,12 @@ class RaceBuilder {
 class Race {
     constructor(builder) {
         this.id = builder.id;
-        this.Name = builder.Name;
+        this.description = builder.description;
     }
 
     updateName(value) {
         if (value) {
-            this.Name = value;
+            this.description = value;
         }
     }
 }

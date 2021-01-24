@@ -5,10 +5,10 @@ const {RaceBuilder } = require('./race');
 
 function getQueries(competitionPrefix, year) {
     return {
-        insertRow: `INSERT INTO ` + competitionPrefix + `Races(id, name) VALUES(?,?)`,
+        insertRow: `INSERT INTO ` + competitionPrefix + `Races(id, description) VALUES(?,?)`,
         readAllRows: `SELECT * FROM ` + competitionPrefix + `Races` + year,
         readRow: `SELECT * FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`,
-        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET name = ? WHERE id = ?`,
+        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET description = ? WHERE id = ?`,
         deleteRow: `DELETE FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`
     }
 }
@@ -35,7 +35,7 @@ module.exports = class RacesDao {
             await con.query("START TRANSACTION");
             await con.query(
                 queries.insertRow,
-                [newEntity.id, newEntity.name]
+                [newEntity.id, newEntity.description]
             );
             await con.query("COMMIT");
             return newEntity;
@@ -54,8 +54,8 @@ module.exports = class RacesDao {
         try {
                         
             await con.query("START TRANSACTION");
-            const tblRacesName = competition + `Races` + this.year;
-            const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesName + "'";
+            const tblRacesDescription = competition + `Races` + this.year;
+            const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesDescription + "'";
             let dbRows;
             const racesTableExists = (await con.query(checkRacesTableQuery)).length;
             if (racesTableExists) {
@@ -112,7 +112,7 @@ module.exports = class RacesDao {
             await con.query("START TRANSACTION");
             await con.query(queries.updateRow, [
                 entity.id,
-                entity.name
+                entity.description
             ]);
             await con.query("COMMIT");
             return entity;
@@ -129,7 +129,7 @@ module.exports = class RacesDao {
     build(row) {
         return builder
             .setId(row.id)
-            .setName(row.name)
+            .setDescription(row.description)
             .build();
     }
 };
