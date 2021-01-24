@@ -15,7 +15,7 @@ module.exports = class AdminController {
 
         console.log('AdminController, create... ');
         
-        AdminController.authenticate(req, res)
+        AdminController.authenticateNewAdminCreation(req, res)
             .then( authenticationResult => {
 
                 if (authenticationResult >= 400) {
@@ -49,19 +49,21 @@ module.exports = class AdminController {
                     .setPassword(hashPassword)
                     .build();
 
-                dao.create(newAdmin)
-                    .then(data => {
-                        console.log("New Admin created.");
-                        res.json(data);
-                    })
-                    .catch(err => {
-                        if (err.errno == 1062) {
-                            res.status(409);
-                        } else {
-                            res.status(400);
-                        }
-                        res.send(err.code);
-                    })
+                //TODO use only when new admin creation 
+                // dao.create(newAdmin)
+                //     .then(data => {
+                //         console.log("New Admin created.");
+                //         data.password = "";
+                //         res.json(data);
+                //     })
+                //     .catch(err => {
+                //         if (err.errno == 1062) {
+                //             res.status(409);
+                //         } else {
+                //             res.status(400);
+                //         }
+                //         res.send(err.code);
+                //     })
             }).catch( authenticationFailure => {
                 res.status(authenticationFailure).end();
             })
@@ -70,11 +72,6 @@ module.exports = class AdminController {
     static authenticate = function(req, res) {
 
         return new Promise((resolve, reject) => {
-        
-            //TODO for new admin creation only
-            // if ((req.body === undefined) || (req.body.secret === undefined) || (req.body.secret !== process.env.SUPERADMIN_SECRET)) {
-                //     reject(400);
-                // }
 
             if (typeof req.headers.authorization === "undefined") {
                 reject(401);
@@ -93,6 +90,35 @@ module.exports = class AdminController {
                     resolve(result);
                 }
             });
+        });
+    }
+
+    static authenticateNewAdminCreation = function(req, res) {
+
+        return new Promise((resolve, reject) => {
+
+            //TODO for new admin creation only
+            if ((req.body === undefined) || (req.body.secret === undefined) || (req.body.secret !== process.env.SUPERADMIN_SECRET)) {
+                reject(400);
+            } else if (typeof req.headers.authorization === "undefined") {
+                reject(401);
+            } else {
+                // let token = req.headers.authorization;
+                // jwt.verify(token, process.env.SUPERADMIN_SECRET, (err, data) => {
+                //     if (err) {
+                //         console.log('AdminController, create... 403');
+                //         console.log('err: ', err);
+                //         reject(403);
+                //     } else {
+                        const result = {
+                            // "user": data.id,
+                            "isOk": true,
+                            "status": 200
+                        }
+                        resolve(result);
+                    // }
+                // });
+            }
         });
     }
 }
