@@ -27,7 +27,7 @@ module.exports = class YearsController {
         
         let lastYear;
         try {
-            lastYear = (await dao.findLast(competition));
+            lastYear = (await dao.findLastCounter(competition));
         } catch(err) {
             console.error(err);
             YearsController.responseWithDbConnectionError(res);
@@ -61,7 +61,7 @@ module.exports = class YearsController {
         
         let nextDate;
         try {
-            nextDate = (await dao.findNext(competition));
+            nextDate = (await dao.findLastCounter(competition));
             res.status(200).json(nextDate);
         } catch(err) {
             console.error(err);
@@ -95,9 +95,13 @@ module.exports = class YearsController {
             return;
         }
 
+        const lastCounter = await dao.findLastCounter(req.params.competition);
+        const nextCounter = lastCounter + 1;
+
         let nextYear = new YearBuilder()
             .setVhpYear(req.body.nextDate.substring(0, 4))
             .setVhpDate(req.body.nextDate)
+            .setVhpCounter(nextCounter)
             .setAcceptRegistrations(req.body.acceptRegistrations)
             .build();
 
@@ -116,8 +120,6 @@ module.exports = class YearsController {
                 console.error(err);
                 res.send(err);
             })
-
-        //TODO creatre tables for next year categories, races and registrations
     };
 
     static update = async function (req, res) {

@@ -8,11 +8,12 @@ const { RaceBuilder } = require('./races/race');
 function getYearsQueries(competitionPrefix) {
     const tblName = competitionPrefix + `Years`;
     return {
-        insertRow: `INSERT INTO ` + tblName + ` (vhpYear, vhpDate, acceptRegistrations) VALUES(?,?,?)`,
+        insertRow: `INSERT INTO ` + tblName + ` (vhpYear, vhpCounter, vhpDate, acceptRegistrations) VALUES(?,?,?,?)`,
         readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName,
         readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE Years.vhpYear = ?`,
-        readNextDateRow: `SELECT * FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
+        readLastCounterValue: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
+        //readNextDateRow: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
     }
@@ -40,6 +41,32 @@ function getRacesQueries(competitionPrefix, year) {
     }
 }
 
+function getRunnersQueries(competitionPrefix, year) {
+    const tblName = competitionPrefix + `Runners` + year;
+    const command = `CREATE TABLE IF NOT EXISTS ` + tblName + ` (
+        id int, 
+        name varchar(30),
+        surname varchar(30),
+        email varchar(50),
+        birth varchar(12),
+        address varchar(255),
+        phone varchar(20),
+        club varchar(255),
+        race varchar(32),
+        comment blob,
+        paid tinyint(1),
+        category varchar(3),
+        number int(3),
+        time varchar(8),
+        create_time timestamp
+    )`;
+    
+    return {
+        createTable: command
+    }
+}
+
+
 let builder = new YearBuilder();
 let categoryBuilder = new CategoryBuilder();
 let raceBuilder = new RaceBuilder();
@@ -61,7 +88,7 @@ module.exports = class YearsDao {
             const acceptRegistrations = newEntity.acceptRegistrations === true ? newEntity.acceptRegistrations : false;
             await con.query(
                 getYearsQueries(competition).insertRow,
-                [newEntity.vhpYear, newEntity.vhpDate, acceptRegistrations]
+                [newEntity.vhpYear, newEntity.vhpCounter, newEntity.vhpDate, acceptRegistrations]
             );
             await con.query(
                 getCategoriesQueries(competition, newEntity.vhpYear).createTable
@@ -78,9 +105,12 @@ module.exports = class YearsDao {
             newEntity.races.forEach(race => {
                 con.query(
                     getRacesQueries(competition, newEntity.vhpYear).insertRow,
-                    [race.frontendId, race.name]
+                    [race.id, race.description]
                 );
             });
+            await con.query(
+                getRunnersQueries(competition, newEntity.vhpYear).createTable
+            );
             await con.query("COMMIT");
             return newEntity;
         } catch (ex) {
@@ -117,88 +147,35 @@ module.exports = class YearsDao {
         }
     }
 
-    async findNext(competition) {
+    async findLastCounter(competition) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbNextDate = await con.query(getYearsQueries(competition).readNextDateRow);
-            let entity = this.build(dbNextDate[0]);
+            let lastCounter = await con.query(getYearsQueries(competition).readLastCounterValue);
             await con.query("COMMIT");
 
-            if (!dbNextDate) {
+            //lastCounter = JSON.parse(JSON.stringify(lastCounter));
+            lastCounter = lastCounter[0].vhpCounter;
+            
+            if (!lastCounter) {
                 return {
                     "suggestedStatus": 404,
                     "error": {
-                        "message": "Next date not found."
+                        "message": "Last counter not found."
                     }
                 }
             }
 
-            return entity;
-        } catch (ex) {
-            console.log(ex);
-            throw ex;
+            return lastCounter;
+        } catch (e) {
+            console.log("ERROR when obtaining last counter: ", e.message);
+            console.log(e);
+            throw e;
         } finally {
             await con.release();
             await con.destroy();
         }
     }    
-
-    async findLast(competition) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            let dbRowYear = await con.query(getYearsQueries(competition).readLastYearRow);
-            let entity = this.build(dbRowYear[0]);
-            // //const tblCategoriesName = competition + `Categories` + entity.vhpYear;
-            // const tblCategoriesName = "vhpCategories2020";
-            // const checkCategoriesTableQuery = "SHOW TABLES LIKE `" + tblCategoriesName + "`";
-            // if (con.query(checkCategoriesTableQuery).length > 0) {
-            //     let dbRowsCategories = await con.query(getCategoriesQueries(competition, 2020).readAllRows);
-            // }
-            // const tblRacesName = competition + `Races` + entity.vhpYear;
-            // const checkRacesTableQuery = "SHOW TABLES LIKE `" + tblRacesName + "`";
-            // console.log('/-----> con.query(checkRacesTableQuery) : ', con.query(checkRacesTableQuery));
-            // console.log('/-----> con.query(checkRacesTableQuery.length) : ', con.query(checkRacesTableQuery).length);
-            // if (con.query(checkRacesTableQuery).length > 0) {
-            //     let dbRowsRaces = await con.query(getRacesQueries(competition, entity.vhpYear).readAllRows);
-            // }
-            await con.query("COMMIT");
-
-            if (!dbRowYear) {
-                return {
-                    "suggestedStatus": 404,
-                    "error": {
-                        "message": "Last year not found."
-                    }
-                }
-            }
-
-            if (typeof dbRowsCategories !== 'undefined') {
-                const categories = [];
-                dbRowsCategories.map(row => {
-                    categories.push(this.buildCategory(row));
-                });
-                if (categories.length > 0) entity.setCategories(categories);
-            }
-
-            // if (typeof dbRowsRaces !== 'undefined') {
-            //     const races = [];
-            //     dbRowsRaces.map(row => {
-            //         races.push(this.buildRace(row));
-            //     });
-            //     if (races.length > 0) entity.setRaces(races);
-            // }
-
-            return entity;
-        } catch (ex) {
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
-        }
-    }
 
     async findById(competition, id) {
         let con = await dbConnection();
