@@ -56,12 +56,11 @@ module.exports = class YearsController {
     };
 
     static getNext = async function (req, res) {
-        console.log('Ctrl GET Next Date'); //TODO remove
         const competition = req.params.competition;
         
         let nextDate;
         try {
-            nextDate = (await dao.findLastCounter(competition));
+            nextDate = (await dao.findNextYear(competition))
             res.status(200).json(nextDate);
         } catch(err) {
             console.error(err);

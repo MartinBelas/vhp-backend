@@ -12,7 +12,8 @@ function getYearsQueries(competitionPrefix) {
         readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName,
         readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE Years.vhpYear = ?`,
-        readLastCounterValue: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
+        readLastCounterValue: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`,
+        readNextYearValue: `SELECT vhpDate, vhpCounter FROM vhpYears WHERE vhpDate=(SELECT MAX(vhpDate) FROM vhpYears) AND vhpDate>CURDATE()`
         //readNextDateRow: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
@@ -154,7 +155,6 @@ module.exports = class YearsDao {
             let lastCounter = await con.query(getYearsQueries(competition).readLastCounterValue);
             await con.query("COMMIT");
 
-            //lastCounter = JSON.parse(JSON.stringify(lastCounter));
             lastCounter = lastCounter[0].vhpCounter;
             
             if (!lastCounter) {
@@ -175,7 +175,46 @@ module.exports = class YearsDao {
             await con.release();
             await con.destroy();
         }
-    }    
+    }
+
+    async findNextYear(competition) {
+        let con = await dbConnection();
+        try {
+            await con.query("START TRANSACTION");
+            let nextYear = await con.query(getYearsQueries(competition).readNextYearValue);
+            await con.query("COMMIT");
+
+            let nextYearDate = nextYear[0].vhpDate;
+            const nextYearCounter = nextYear[0].vhpCounter;
+
+            let month = nextYearDate.getMonth()+1;
+            if (month < 10) month = "0"+month;
+            nextYearDate = nextYearDate.getFullYear()+"-"+month+"-"+nextYearDate.getDate();
+            
+            nextYear = {
+                "date": nextYearDate,
+                "counter": nextYearCounter
+            }
+            
+            if (!nextYear) {
+                return {
+                    "suggestedStatus": 404,
+                    "error": {
+                        "message": "Next year not found."
+                    }
+                }
+            }
+
+            return nextYear;
+        } catch (e) {
+            console.log("ERROR when obtaining next year: ", e.message);
+            console.log(e);
+            throw e;
+        } finally {
+            await con.release();
+            await con.destroy();
+        }
+    }
 
     async findById(competition, id) {
         let con = await dbConnection();
