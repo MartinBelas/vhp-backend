@@ -11,7 +11,7 @@ function getYearsQueries(competitionPrefix) {
         insertRow: `INSERT INTO ` + tblName + ` (vhpYear, vhpCounter, vhpDate, acceptRegistrations) VALUES(?,?,?,?)`,
         readAllRows: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName,
         readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
-        readRow: `SELECT * FROM ` + tblName + ` WHERE Years.vhpYear = ?`,
+        readRow: `SELECT * FROM ` + tblName + ` WHERE vhpYear = ?`,
         readLastCounterValue: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`,
         readNextYearValue: `SELECT vhpDate, vhpCounter FROM vhpYears WHERE vhpDate=(SELECT MAX(vhpDate) FROM vhpYears) AND vhpDate>CURDATE()`
         //readNextDateRow: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
@@ -45,11 +45,12 @@ function getRacesQueries(competitionPrefix, year) {
 function getRunnersQueries(competitionPrefix, year) {
     const tblName = competitionPrefix + `Runners` + year;
     const command = `CREATE TABLE IF NOT EXISTS ` + tblName + ` (
-        id int, 
-        name varchar(30),
-        surname varchar(30),
+        id VARCHAR(36) PRIMARY KEY, 
         email varchar(50),
+        firstname varchar(30),
+        lastname varchar(30),
         birth varchar(12),
+        sex varchar(1),
         address varchar(255),
         phone varchar(20),
         club varchar(255),
@@ -177,12 +178,65 @@ module.exports = class YearsDao {
         }
     }
 
+    async findLast(competition) {
+        let con = await dbConnection();
+        try {
+            await con.query("START TRANSACTION");
+            let dbRowYear = await con.query(getYearsQueries(competition).readLastYearRow);
+            let entity = this.build(dbRowYear[0]);
+            await con.query("COMMIT");
+
+            if (!dbRowYear) {
+                return {
+                    "suggestedStatus": 404,
+                    "error": {
+                        "message": "Last year not found."
+                    }
+                }
+            }
+
+            if (typeof dbRowsCategories !== 'undefined') {
+                const categories = [];
+                dbRowsCategories.map(row => {
+                    categories.push(this.buildCategory(row));
+                });
+                if (categories.length > 0) entity.setCategories(categories);
+            }
+
+            if (typeof dbRowsRaces !== 'undefined') {
+                const races = [];
+                dbRowsRaces.map(row => {
+                    races.push(this.buildRace(row));
+                });
+                if (races.length > 0) entity.setRaces(races);
+            }
+
+            return entity;
+        } catch (ex) {
+            console.log(ex);
+            throw ex;
+        } finally {
+            await con.release();
+            await con.destroy();
+        }
+    }
+
     async findNextYear(competition) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
             let nextYear = await con.query(getYearsQueries(competition).readNextYearValue);
             await con.query("COMMIT");
+
+
+            if (!nextYear || nextYear.length < 1) {
+                return {
+                    "suggestedStatus": 404,
+                    "error": {
+                        "message": "Next year not found."
+                    }
+                }
+            }
 
             let nextYearDate = nextYear[0].vhpDate;
             const nextYearCounter = nextYear[0].vhpCounter;
@@ -196,15 +250,6 @@ module.exports = class YearsDao {
                 "counter": nextYearCounter
             }
             
-            if (!nextYear) {
-                return {
-                    "suggestedStatus": 404,
-                    "error": {
-                        "message": "Next year not found."
-                    }
-                }
-            }
-
             return nextYear;
         } catch (e) {
             console.log("ERROR when obtaining next year: ", e.message);

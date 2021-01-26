@@ -27,7 +27,7 @@ module.exports = class YearsController {
         
         let lastYear;
         try {
-            lastYear = (await dao.findLastCounter(competition));
+            lastYear = (await dao.findLast(competition));
         } catch(err) {
             console.error(err);
             YearsController.responseWithDbConnectionError(res);

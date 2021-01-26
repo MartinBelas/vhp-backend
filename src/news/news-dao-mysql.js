@@ -28,7 +28,6 @@ module.exports = class NewsDao {
     }
 
     async create(competition, newEntity) {
-        console.log(' -- create: ', newEntity);
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");

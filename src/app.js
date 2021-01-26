@@ -11,6 +11,7 @@ const LoginRouter = require('./auth/login/login-routes.js');
 const CompetitionsRouter = require('./competitions/competitions.routes.js');
 const YearsRouter = require('./years/years-routes.js');
 const NewsRouter = require('./news/news-routes.js');
+const RegistrationsRouter = require('./registrations/registrations-routes.js');
 
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -44,6 +45,7 @@ LoginRouter(app);
 CompetitionsRouter(app);
 YearsRouter(app);
 NewsRouter(app);
+RegistrationsRouter(app);
 
 const PORT = process.env.PORT || config.port || 3000;
 

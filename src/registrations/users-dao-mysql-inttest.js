@@ -2,7 +2,7 @@
 require('custom-env').env('test');
 
 const assert = require('assert');
-const { UserBuilder, Gender } = require('./user');
+const { RegistrationBuilder, Sex } = require('./user');
 
 const dbConnection = require('../mysqlDbConnection');
 const UsersDao = require('./users-dao-mysql');
@@ -38,17 +38,17 @@ describe('users-dao-mysql-inttest', function() {
                 
             let albert = users.find(user => user.firstName === 'Albert');
             assert.equal(albert.lastName, 'Armstrong');
-            assert.equal(albert.gender.code, 'M');
+            assert.equal(albert.sex.code, 'M');
             assert(albert.email);
             assert(albert.birthDate);
 
             let bob = users.find(user => user.firstName === 'Bob');
             assert.equal(bob.lastName, 'Brooke');
-            assert.equal(bob.gender.value, 'male');
+            assert.equal(bob.sex.value, 'male');
 
             let clara = users.find(user => user.firstName === 'Clara');
             assert.equal(clara.lastName, 'Carson');
-            assert.equal(clara.gender.value, 'female');
+            assert.equal(clara.sex.value, 'female');
         });
     });
 
@@ -58,21 +58,21 @@ describe('users-dao-mysql-inttest', function() {
             const firstName = 'Karel';
             const lastName = 'Gott';
             const birthDate = 'aaa';
-            const gender = Gender.M;
+            const sex = Sex.M;
             const email = 'bbb';
 
-            const karel = new UserBuilder()
+            const karel = new RegistrationBuilder()
                 .setFirstName(firstName)
                 .setLastName(lastName)
                 .setBirthDate(birthDate)
-                .setGender(gender)
+                .setSex(sex)
                 .setEmail(email)
                 .build();
 
             let user = await dao.create(karel);
             assert.equal(user.firstName, firstName);
             assert.equal(user.lastName, lastName);
-            assert.equal(user.gender, gender);
+            assert.equal(user.sex, sex);
             assert.equal(user.email, email);
             assert.equal(user.birthDate, birthDate);
         });
@@ -85,21 +85,21 @@ describe('#update()', function() {
         const firstName = 'Julie';
         const lastName = 'Bila';
         const birthDate = 'aaa';
-        const gender = Gender.F;
+        const sex = Sex.F;
         const email = 'bbb';
 
-        let julie = new UserBuilder()
+        let julie = new RegistrationBuilder()
             .setFirstName(firstName)
             .setLastName(lastName)
             .setBirthDate(birthDate)
-            .setGender(gender)
+            .setSex(sex)
             .setEmail(email)
             .build();
 
         let user = await dao.create(julie);
         assert.equal(user.firstName, firstName);
         assert.equal(user.lastName, lastName);
-        assert.equal(user.gender, gender);
+        assert.equal(user.sex, sex);
         assert.equal(user.email, email);
         assert.equal(user.birthDate, birthDate);
 
@@ -108,7 +108,7 @@ describe('#update()', function() {
 
         assert.equal(user.firstName, firstName);
         assert.equal(user.lastName, 'Cerna');
-        assert.equal(user.gender, gender);
+        assert.equal(user.sex, sex);
         assert.equal(user.email, email);
         assert.equal(user.birthDate, birthDate);
     });
@@ -118,21 +118,21 @@ describe('#update()', function() {
         const firstName = 'Julie';
         const lastName = 'Bila';
         const birthDate = 'aaa';
-        const gender = Gender.F;
+        const sex = Sex.F;
         const email = 'bbb';
 
-        let julie = new UserBuilder()
+        let julie = new RegistrationBuilder()
             .setFirstName(firstName)
             .setLastName(lastName)
             .setBirthDate(birthDate)
-            .setGender(gender)
+            .setSex(sex)
             .setEmail(email)
             .build();
 
         let user = await dao.create(julie);
         assert.equal(user.firstName, firstName);
         assert.equal(user.lastName, lastName);
-        assert.equal(user.gender, gender);
+        assert.equal(user.sex, sex);
         assert.equal(user.email, email);
         assert.equal(user.birthDate, birthDate);
 
@@ -142,7 +142,7 @@ describe('#update()', function() {
 
         assert.equal(user.firstName, firstName);
         assert.equal(user.lastName, lastName);
-        assert.equal(user.gender, gender);
+        assert.equal(user.sex, sex);
         assert.equal(user.email, newEmail);
         assert.equal(user.birthDate, birthDate);
     });
@@ -166,13 +166,13 @@ async function clearTblUsers() {
 }
 
 async function prepareTblUsers() {
-    const builder = new UserBuilder();
+    const builder = new RegistrationBuilder();
 
     let albert = builder
         .setFirstName('Albert')
         .setLastName('Armstrong')
         .setBirthDate('XXX')
-        .setGender(Gender.M)
+        .setSex(Sex.M)
         .setEmail('XXX')
         .build();
 
@@ -180,7 +180,7 @@ async function prepareTblUsers() {
         .setFirstName('Bob')
         .setLastName('Brooke')
         .setBirthDate('XXX')
-        .setGender(Gender.M)
+        .setSex(Sex.M)
         .setEmail('XXX')
         .build();
 
@@ -188,7 +188,7 @@ async function prepareTblUsers() {
         .setFirstName('Clara')
         .setLastName('Carson')
         .setBirthDate('XXX')
-        .setGender(Gender.F)
+        .setSex(Sex.F)
         .setEmail('XXX')
         .build();
 

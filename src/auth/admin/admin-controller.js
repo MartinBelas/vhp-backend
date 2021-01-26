@@ -50,20 +50,20 @@ module.exports = class AdminController {
                     .build();
 
                 //TODO use only when new admin creation 
-                // dao.create(newAdmin)
-                //     .then(data => {
-                //         console.log("New Admin created.");
-                //         data.password = "";
-                //         res.json(data);
-                //     })
-                //     .catch(err => {
-                //         if (err.errno == 1062) {
-                //             res.status(409);
-                //         } else {
-                //             res.status(400);
-                //         }
-                //         res.send(err.code);
-                //     })
+                dao.create(newAdmin)
+                    .then(data => {
+                        console.log("New Admin created.");
+                        data.password = "";
+                        res.json(data);
+                    })
+                    .catch(err => {
+                        if (err.errno == 1062) {
+                            res.status(409);
+                        } else {
+                            res.status(400);
+                        }
+                        res.send(err.code);
+                    })
             }).catch( authenticationFailure => {
                 res.status(authenticationFailure).end();
             })

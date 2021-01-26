@@ -1,19 +1,26 @@
 'use strict';
 
 const dbConnection = require('../mysqlDbConnection');
-const { UserBuilder, Gender } = require('./user');
+const { RegistrationBuilder, Sex } = require('./registration');
 
-const queries = {
-    insertRow: `INSERT INTO User(id, firstname, lastname, birthdate, gender, email) VALUES(?,?,?,?,?,?)`,
-    readAllRows: `SELECT * FROM User`,
-    readRow: `SELECT * FROM User WHERE User.id = ?`,
-    updateRow: `UPDATE User SET User.firstname = ?, User.lastname = ?, User.birthdate = ?, User.gender = ?, User.email = ? WHERE User.id = ?`,
-    deleteRow: `DELETE FROM User WHERE User.id = ?`
+function getQueries(competitionPrefix, year) {
+    const tblName = competitionPrefix + `Runners` + year;
+    return {
+        insertRow: `INSERT INTO ` + tblName + `(id, email, firstname, lastname, birth, sex, address, phone, club, race, comment, category, create_time) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        readAllRows: `SELECT * FROM ` + tblName,
+        readRow: `SELECT * FROM ` + tblName + ` WHERE id = ?`,
+        //updateRow: `UPDATE ` + tblName + ` SET User.firstname = ?, User.lastname = ?, User.birthdate = ?, User.sex = ?, User.email = ? WHERE User.id = ?`,
+        //deleteRow: `DELETE FROM ` + tblName + ` WHERE User.id = ?`
+    }
 }
 
-let builder = new UserBuilder();
+let builder = new RegistrationBuilder();
 
-module.exports = class UsersDao {
+module.exports = class RegistrationsDao {
+
+    constructor(year) {
+        this.year = year;
+    }
 
     async getDbConnection() {
         if (!this.dbConnectionConfig) {
@@ -23,13 +30,27 @@ module.exports = class UsersDao {
         return con;
     }
 
-    async create(newEntity) {
+    async create(competition, newEntity) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
             await con.query(
-                queries.insertRow,
-                [newEntity.id, newEntity.firstName, newEntity.lastName, newEntity.birthDate, newEntity.gender.code, newEntity.email]
+                getQueries(competition, this.year).insertRow,
+                [
+                    newEntity.id, 
+                    newEntity.email, 
+                    newEntity.firstName, 
+                    newEntity.lastName, 
+                    newEntity.birth, 
+                    newEntity.sex.code,
+                    newEntity.address, 
+                    newEntity.phone, 
+                    newEntity.club, 
+                    newEntity.race,
+                    newEntity.comment,
+                    "TDO",
+                    new Date()
+                ]
             );
             await con.query("COMMIT");
             return newEntity;
@@ -60,7 +81,7 @@ module.exports = class UsersDao {
                     .setFirstName(row.firstname)
                     .setLastName(row.lastname)
                     .setBirthDate(row.birthdate)
-                    .setGender(Gender[row.gender])
+                    .setSex(Sex[row.sex])
                     .setEmail(row.email)
                     .build();
             });
@@ -94,7 +115,7 @@ module.exports = class UsersDao {
                     .setFirstName(dbRow.firstname)
                     .setLastName(dbRow.lastname)
                     .setBirthDate(dbRow.birthdate)
-                    .setGender(Gender[dbRow.gender])
+                    .setSex(Sex[dbRow.sex])
                     .setEmail(dbRow.email)
                     .build();
             return entity;
@@ -115,7 +136,7 @@ module.exports = class UsersDao {
                 entity.firstName,
                 entity.lastName,
                 entity.birthDate,
-                entity.gender.code,
+                entity.sex.code,
                 entity.email,
                 entity.id
             ]);
