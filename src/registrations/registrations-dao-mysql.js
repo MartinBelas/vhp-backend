@@ -64,11 +64,11 @@ module.exports = class RegistrationsDao {
         }
     }
 
-    async find() {
+    async find(competition) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRows = await con.query(queries.readAllRows);
+            let dbRows = await con.query(getQueries(competition, this.year).readAllRows);
             await con.query("COMMIT");
 
             if (!dbRows) {
@@ -80,9 +80,12 @@ module.exports = class RegistrationsDao {
                     .setIdFromDb(row.id)
                     .setFirstName(row.firstname)
                     .setLastName(row.lastname)
-                    .setBirthDate(row.birthdate)
+                    .setBirth(row.birth)
                     .setSex(Sex[row.sex])
                     .setEmail(row.email)
+                    .setAddress(row.address)
+                    .setClub(row.club)
+                    .setRace(row.race)
                     .build();
             });
             return entities;

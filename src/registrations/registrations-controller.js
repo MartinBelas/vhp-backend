@@ -4,14 +4,37 @@ const RegistrationsDao = require('./registrations-dao-mysql');
 const { RegistrationBuilder, Sex } = require('./registration');
 const YearsDao = require('../years/years-dao-mysql');
 
-const yearsDao = new YearsDao();
-
 module.exports = class RegistrationsController {
 
-    static getAll = function (req, res) {
-        console.log('Ctrl GET All Registrations'); //TODO rm
-        dao.find()
+    static getNextYear = async function(competition) {
+
+        const yearsDao = new YearsDao();
+        let nextYearDateYear;
+
+        if (!nextYearDateYear) {
+            const nextYear = (await yearsDao.findNextYear(competition))
+            nextYearDateYear = nextYear.date.substring(0,4);
+        }
+
+        return nextYearDateYear;
+    }
+
+    static getAll = async function (req, res) {
+
+        const competition = req.params.competition;
+        
+        const nextYear = await RegistrationsController.getNextYear(competition);
+
+        if (nextYear.error) {
+            res.status(nextYear.suggestedStatus).send({ message: nextYear.error });
+            return;
+        }
+
+        const dao =  new RegistrationsDao(nextYear);
+
+        dao.find(competition)
             .then(data => {
+                data.forEach(element => { element.email = "" });
                 res.json(data);
             })
             .catch(err => {
@@ -20,37 +43,37 @@ module.exports = class RegistrationsController {
             })
     };
 
-    static get = function (req, res) {
-        dao.findById(req.params.id)
-            .then(result => {
-                if (result.error) {
-                    if (result.suggestedStatus) {
-                        res.status(result.suggestedStatus);
-                    }
-                    res.json(result.error);
-                } else {
-                    res.status(200).json(result);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                RegistrationsController.responseWithDbConnectionError(res);
-            })
-    };
+    //TODO for adm only
+    // static get = function (req, res) {
+    //     dao.findById(req.params.id)
+    //         .then(result => {
+    //             if (result.error) {
+    //                 if (result.suggestedStatus) {
+    //                     res.status(result.suggestedStatus);
+    //                 }
+    //                 res.json(result.error);
+    //             } else {
+    //                 res.status(200).json(result);
+    //             }
+    //         })
+    //         .catch(err => {
+    //             console.error(err);
+    //             RegistrationsController.responseWithDbConnectionError(res);
+    //         })
+    // };
 
     static create = async function (req, res) {
 
         const competition = req.params.competition;
-        const nextYear = (await yearsDao.findNextYear(competition))
 
+        const nextYear = await RegistrationsController.getNextYear(competition);
+        
         if (nextYear.error) {
             res.status(nextYear.suggestedStatus).send({ message: nextYear.error });
             return;
         }
         
-        const nextYearDateYear = nextYear.date.substring(0,4);
-        
-        const dao =  new RegistrationsDao(nextYearDateYear);
+        const dao =  new RegistrationsDao(nextYear);
 
         // Validate request
         if (!req.body.email) {

@@ -119,7 +119,6 @@ class Registration {
         this.comment = builder.comment;
         this.paid = builder.paid;
         this.category = builder.category;
-        this.create_time = new Date();
     }
 
     updateLastName(value) {

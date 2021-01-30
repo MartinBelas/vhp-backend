@@ -10,10 +10,13 @@ module.exports = function RegistrationsRouter(app) {
     const apiPath = `/:competition/registrations`;
 
     router.get(apiPath, controller.getAll);
-    router.get(apiPath + `/:id`, controller.get);
+
+    //TODO for adm only
+    //router.get(apiPath + `/:id`, controller.get);
 	
     router.post(apiPath, controller.create);
     
-    router.put(apiPath + `/:id`, controller.update)
-    router.delete(apiPath + `/:id`, controller.delete);
+    //TODO for adm only
+    //router.put(apiPath + `/:id`, controller.update)
+    //router.delete(apiPath + `/:id`, controller.delete);
 };
