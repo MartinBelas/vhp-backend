@@ -2,7 +2,7 @@
 require('custom-env').env();
 
 const config = require('./config.js');
-
+const path = require('path');
 const express = require('express');
 const app = express();
 
@@ -26,7 +26,11 @@ app.use(function (req, res, next) {
     }
 });
 
-app.use(express.static("public"));
+//app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/*', function (req, res) {
+   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.use(function (req, res, next) {
 
@@ -47,7 +51,7 @@ YearsRouter(app);
 NewsRouter(app);
 RegistrationsRouter(app);
 
-const PORT = process.env.PORT || config.port || 3000;
+const PORT = process.env.PORT || config.port || 8000;
 
 app.listen(PORT, function () {
     console.log('app listening at port %s', PORT);
