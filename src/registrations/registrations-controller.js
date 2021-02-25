@@ -35,6 +35,8 @@ module.exports = class RegistrationsController {
         dao.find(competition)
             .then(data => {
                 data.forEach(element => { element.email = "" });
+                data.forEach(element => { element.birth = "" });
+                data.forEach(element => { element.phone = "" });
                 res.json(data);
             })
             .catch(err => {
