@@ -26,10 +26,17 @@ app.use(function (req, res, next) {
     }
 });
 
-//app.use(express.static("public"));
+AdminRouter(app);
+LoginRouter(app);
+CompetitionsRouter(app);
+YearsRouter(app);
+NewsRouter(app);
+RegistrationsRouter(app);
+
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/*', function (req, res) {
-   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.use(function (req, res, next) {
@@ -43,13 +50,6 @@ app.use(function (req, res, next) {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
-
-AdminRouter(app);
-LoginRouter(app);
-CompetitionsRouter(app);
-YearsRouter(app);
-NewsRouter(app);
-RegistrationsRouter(app);
 
 const PORT = process.env.PORT || config.port || 8000;
 
