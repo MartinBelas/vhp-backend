@@ -3,43 +3,48 @@
 const AdminController = require('../auth/admin/admin-controller.js');
 const NewsDao = require('./news-dao-mysql');
 const { NewsItemBuilder } = require('./news');
+const ApiKeyService = require('../common/ApiKeyService');
 
 const dao = new NewsDao();
 
 module.exports = class NewsController {
 
     static getAll = function (req, res) {
-        console.log('Ctrl GET All News - count: ', req.query.count);
-        dao.find(req.params.competition, req.query.count)
-            .then(data => {
-                res.json(data);
-            })
-            .catch(err => {
-                console.error(err);
-                NewsController.responseWithDbConnectionError(res);
-            })
+
+        if (ApiKeyService.getApiKeyOk()) {
+            dao.find(req.params.competition, req.query.count)
+                .then(data => {
+                    res.json(data);
+                })
+                .catch(err => {
+                    console.error(err);
+                    NewsController.responseWithDbConnectionError(res);
+                })
+        }
     };
 
     static get = function (req, res) {
-        dao.findById(req.params.competition, req.params.id)
-            .then(result => {
-                if (result.error) {
-                    if (result.suggestedStatus) {
-                        res.status(result.suggestedStatus);
+
+        if (ApiKeyService.getApiKeyOk()) {
+            dao.findById(req.params.competition, req.params.id)
+                .then(result => {
+                    if (result.error) {
+                        if (result.suggestedStatus) {
+                            res.status(result.suggestedStatus);
+                        }
+                        res.json(result.error);
+                    } else {
+                        res.status(200).json(result);
                     }
-                    res.json(result.error);
-                } else {
-                    res.status(200).json(result);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                NewsController.responseWithDbConnectionError(res);
-            })
+                })
+                .catch(err => {
+                    console.error(err);
+                    NewsController.responseWithDbConnectionError(res);
+                })
+        }
     };
 
     static create = async function (req, res) {
-
         
         AdminController.authenticate(req, res)
             .then( authenticationResult => {

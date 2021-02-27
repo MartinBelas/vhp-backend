@@ -12,6 +12,7 @@ const CompetitionsRouter = require('./competitions/competitions.routes.js');
 const YearsRouter = require('./years/years-routes.js');
 const NewsRouter = require('./news/news-routes.js');
 const RegistrationsRouter = require('./registrations/registrations-routes.js');
+const ApiKeyService = require('./common/ApiKeyService');
 
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -26,6 +27,18 @@ app.use(function (req, res, next) {
     }
 });
 
+app.use(function (req, res, next) {
+    if (req.headers['api-key'] && (req.headers['api-key']===process.env.API_KEY)) {
+        ApiKeyService.setApiKeyOk(true);
+    } else {
+        ApiKeyService.setApiKeyOk(false);
+    }
+    return next();
+});
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); 
+
 AdminRouter(app);
 LoginRouter(app);
 CompetitionsRouter(app);
@@ -34,22 +47,10 @@ NewsRouter(app);
 RegistrationsRouter(app);
 
 app.use(express.static(path.join(__dirname, 'public')));
-
+        
 app.get('/*', function (req, res) {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-app.use(function (req, res, next) {
-
-    if (req.headers['api-key'] && (req.headers['api-key']===process.env.API_KEY)) {
-        return next();
-    } else {
-        res.end();
-    }
-});
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); 
 
 const PORT = process.env.PORT || config.port || 8000;
 
