@@ -11,4 +11,4 @@ class ApiKeyService {
     }
 }
 
-module.exports = new ApiKeyService()
+module.exports = new ApiKeyService();

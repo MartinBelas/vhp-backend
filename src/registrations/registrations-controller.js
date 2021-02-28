@@ -2,8 +2,8 @@
 
 const RegistrationsDao = require('./registrations-dao-mysql');
 const { RegistrationBuilder, Sex } = require('./registration');
-const YearsDao = require('../years/years-dao-mysql');
 const ApiKeyService = require('../common/ApiKeyService');
+const NextYearService = require('../common/NextYearService');
 const EmailService = require('../common/EmailService');
 
 const registration_subject = "Registrace na VH pulmaraton"
@@ -26,46 +26,34 @@ function getRegistrationMailBody(newRegistration) {
 
 module.exports = class RegistrationsController {
 
-    static getNextYear = async function (competition) {
-
-        if (ApiKeyService.getApiKeyOk()) {
-            const yearsDao = new YearsDao();
-            let nextYearDateYear;
-    
-            if (!nextYearDateYear) {
-                const nextYear = (await yearsDao.findNextYear(competition))
-                nextYearDateYear = nextYear.date.substring(0, 4);
-            }
-    
-            return nextYearDateYear;
-        }
-    }
-
     static getAll = async function (req, res) {
 
         if (ApiKeyService.getApiKeyOk()) {
             const competition = req.params.competition;
     
-            const nextYear = await RegistrationsController.getNextYear(competition);
-    
-            if (nextYear.error) {
-                res.status(nextYear.suggestedStatus).send({ message: nextYear.error });
-                return;
-            }
-    
-            const dao = new RegistrationsDao(nextYear);
-    
-            dao.find(competition)
-                .then(data => {
-                    data.forEach(element => { element.email = "" });
-                    data.forEach(element => { element.birth = "" });
-                    data.forEach(element => { element.phone = "" });
-                    res.json(data);
-                })
-                .catch(err => {
-                    console.error(err);
+            const nextYear = await NextYearService.getNextYear(competition)
+                .catch ( e => {
+                    console.log('ERR Registration controller, gel all: ', "error when obtaining next year");
                     RegistrationsController.responseWithDbConnectionError(res);
-                })
+                });
+
+            if (nextYear) {
+
+                const dao = new RegistrationsDao(nextYear);
+        
+                dao.find(competition)
+                    .then(data => {
+                        data.forEach(element => { element.email = "" });
+                        data.forEach(element => { element.birth = "" });
+                        data.forEach(element => { element.phone = "" });
+                        res.json(data);
+                    })
+                    .catch(err => {
+                        console.log('ERR Registration controller, gel all, processing data: ', err);
+                        RegistrationsController.responseWithDbConnectionError(res);
+                    })
+            }
+
         }
     };
 
@@ -92,83 +80,89 @@ module.exports = class RegistrationsController {
 
         const competition = req.params.competition;
 
-        const nextYear = await RegistrationsController.getNextYear(competition);
+        const nextYear = await NextYearService.getNextYear(competition)
+            .catch ( e => {
+                console.log('ERR Registration controller, gel all: ', "error when obtaining next year");
+                RegistrationsController.responseWithDbConnectionError(res);
+            });
 
-        if (nextYear.error) {
-            res.status(nextYear.suggestedStatus).send({ message: nextYear.error });
-            return;
-        }
+        if (nextYear) {
 
-        const dao = new RegistrationsDao(nextYear);
-
-        // Validate request
-        if (!req.body.registration.email) {
-            res.status(400).send({ message: "Email can not be empty!" });
-            return;
-        }
-        if (!req.body.registration.firstname) {
-            res.status(400).send({ message: "First name can not be empty!" });
-            return;
-        }
-        if (!req.body.registration.lastname) {
-            res.status(400).send({ message: "Last name can not be empty!" });
-            return;
-        }
-        if (!req.body.registration.birth) {
-            res.status(400).send({ message: "Birth year can not be empty!" });
-            return;
-        }
-        if (!req.body.registration.sex) {
-            res.status(400).send({ message: "Sex can not be empty!" });
-            return;
-        }
-        let sex = req.body.registration.sex;
-        if (!(['M', 'F'].includes(sex))) {
-            res.status(400).send({ message: "Sex must be 'M' or 'F' only!" });
-            return;
-        }
-        sex = Sex[sex];
-
-        if (!req.body.registration.race) {
-            res.status(400).send({ message: "Race can not be empty!" });
-            return;
-        }
-
-        let newRegistration;
-        try {
-            let registration = req.body.registration;
-            newRegistration = new RegistrationBuilder()
-                .setEmail(registration.email)
-                .setFirstName(registration.firstname)
-                .setLastName(registration.lastname)
-                .setBirth(registration.birth)
-                .setSex(sex)
-                .setAddress(registration.home)
-                .setPhone(registration.phone)
-                .setClub(registration.club)
-                .setRace(registration.race)
-                .setComment(registration.notes)
-                .setPaid(false)
+            console.log(' --- nextYear : ', nextYear);
     
-                //TODO category, timeStamp
-                .build();
-        } catch (err) {
-            console.log('RegistrationsController create: ', err);
-            res.status(422);
-            res.send(err);
+            const dao = new RegistrationsDao(nextYear);
+    
+            // Validate request
+            if (!req.body.registration.email) {
+                res.status(400).send({ message: "Email can not be empty!" });
+                return;
+            }
+            if (!req.body.registration.firstname) {
+                res.status(400).send({ message: "First name can not be empty!" });
+                return;
+            }
+            if (!req.body.registration.lastname) {
+                res.status(400).send({ message: "Last name can not be empty!" });
+                return;
+            }
+            if (!req.body.registration.birth) {
+                res.status(400).send({ message: "Birth year can not be empty!" });
+                return;
+            }
+            if (!req.body.registration.sex) {
+                res.status(400).send({ message: "Sex can not be empty!" });
+                return;
+            }
+            let sex = req.body.registration.sex;
+            if (!(['M', 'F'].includes(sex))) {
+                res.status(400).send({ message: "Sex must be 'M' or 'F' only!" });
+                return;
+            }
+            sex = Sex[sex];
+    
+            if (!req.body.registration.race) {
+                res.status(400).send({ message: "Race can not be empty!" });
+                return;
+            }
+    
+            let newRegistration;
+            try {
+                let registration = req.body.registration;
+                newRegistration = new RegistrationBuilder()
+                    .setEmail(registration.email)
+                    .setFirstName(registration.firstname)
+                    .setLastName(registration.lastname)
+                    .setBirth(registration.birth)
+                    .setSex(sex)
+                    .setAddress(registration.home)
+                    .setPhone(registration.phone)
+                    .setClub(registration.club)
+                    .setRace(registration.race)
+                    .setComment(registration.notes)
+                    .setPaid(false)
+        
+                    //TODO category, timeStamp
+                    .build();
+            } catch (err) {
+                console.log('RegistrationsController create: ', err);
+                res.status(422);
+                res.send(err);
+            }
+    
+    
+            dao.create(req.params.competition, newRegistration)
+                .then(data => {
+                    EmailService.sendMail(newRegistration.email, registration_subject, getRegistrationMailBody(newRegistration));
+                    res.json(data);
+                })
+                .catch(err => {
+                    console.error("ERR - Create registration error: ", err);
+                    res.status(500);
+                    res.send(err);
+                })
         }
 
 
-        dao.create(req.params.competition, newRegistration)
-            .then(data => {
-                EmailService.sendMail(newRegistration.email, registration_subject, getRegistrationMailBody(newRegistration));
-                res.json(data);
-            })
-            .catch(err => {
-                console.error("ERR - Create registration error: ", err);
-                res.status(500);
-                res.send(err);
-            })
     };
 
     static update = async function (req, res) {

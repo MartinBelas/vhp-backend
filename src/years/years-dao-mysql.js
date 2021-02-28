@@ -222,10 +222,11 @@ module.exports = class YearsDao {
     }
 
     async findNextYear(competition) {
-        let con = await dbConnection();
+        let nextYear;
         try {
+            let con = await dbConnection();
             await con.query("START TRANSACTION");
-            let nextYear = await con.query(getYearsQueries(competition).readNextYearValue);
+            nextYear = await con.query(getYearsQueries(competition).readNextYearValue);
             await con.query("COMMIT");
 
 
@@ -251,13 +252,15 @@ module.exports = class YearsDao {
             }
             
             return nextYear;
-        } catch (e) {
-            console.log("ERROR when obtaining next year: ", e.message);
-            console.log(e);
-            throw e;
+        } catch (err) {
+            console.log("ERR years dao - when obtaining next year: ", err.message);
+            throw err;
+            //await Promise.reject(nextYear);
         } finally {
-            await con.release();
-            await con.destroy();
+            if (typeof con !== 'undefined' && con) {
+                await con.release();
+                await con.destroy();
+            }
         }
     }
 
