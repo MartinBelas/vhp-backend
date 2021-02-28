@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const { User, RegistrationBuilder, Sex } = require('./user.js');
+const { Registration, RegistrationBuilder, Sex } = require('./registration.js');
 
 const FIRST_NAME = 'Karel';
 const LAST_NAME = 'Gott';
@@ -9,24 +9,24 @@ const BIRTH_DATE = 'zzz';
 const EMAIL = 'zzz';
 const SEX = Sex.M;
 
-describe('creating new User using UsersBuilder', () => { 
+describe('creating new Registration using RegistrationsBuilder', () => { 
 
     it('when all is set ok', () => {
         
         const builder = new RegistrationBuilder();
-        const testUser = builder
+        const testRegistration = builder
             .setFirstName(FIRST_NAME)
             .setLastName(LAST_NAME)
-            .setBirthDate(BIRTH_DATE)
+            .setBirth(BIRTH_DATE)
             .setSex(SEX)
             .setEmail(EMAIL)
             .build();
 
-        assert.equal(testUser.firstName, FIRST_NAME);
-        assert.equal(testUser.lastName, LAST_NAME);
-        assert.equal(testUser.birthDate, BIRTH_DATE);
-        assert.equal(testUser.sex, SEX);
-        assert.equal(testUser.email, EMAIL);
+        assert.equal(testRegistration.firstName, FIRST_NAME);
+        assert.equal(testRegistration.lastName, LAST_NAME);
+        assert.equal(testRegistration.birth, BIRTH_DATE);
+        assert.equal(testRegistration.sex, SEX);
+        assert.equal(testRegistration.email, EMAIL);
     })
 
     it('when sex not from Sex enum then throws error', () => {
@@ -37,7 +37,7 @@ describe('creating new User using UsersBuilder', () => {
         assert.throws(() => { builder
                 .setFirstName(FIRST_NAME)
                 .setLastName(LAST_NAME)
-                .setBirthDate(BIRTH_DATE)
+                .setBirth(BIRTH_DATE)
                 .setSex(badSex)
                 .setEmail(EMAIL)
                 .build();
@@ -75,7 +75,7 @@ describe('creating new User using UsersBuilder', () => {
             assert.throws(() => { builder
                         .setFirstName(FIRST_NAME)
                         .setLastName(LAST_NAME)
-                        .setBirthDate(BIRTH_DATE)
+                        .setBirth(BIRTH_DATE)
                         .setEmail(EMAIL)
                         .build();
                 }, new Error('Sex is missing.'));
@@ -88,7 +88,7 @@ describe('creating new User using UsersBuilder', () => {
             assert.throws(() => { builder
                         .setFirstName(FIRST_NAME)
                         .setLastName(LAST_NAME)
-                        .setBirthDate(BIRTH_DATE)
+                        .setBirth(BIRTH_DATE)
                         .setSex(SEX)
                         .build();
                 }, new Error('Email is missing.'));
@@ -104,32 +104,32 @@ describe('creating new User using UsersBuilder', () => {
                         .setSex(SEX)
                         .setEmail(EMAIL)
                         .build();
-                }, new Error('BirthDate is missing.'));
+                }, new Error('Birth year is missing.'));
         })
     })
 })
 
-describe('reading User from db using UsersBuilder', () => { 
+describe('reading Registration from db using RegistrationsBuilder', () => { 
 
     it('when all is set ok', () => {
 
         const idFromDb = 'some-id-from-db';
         
         const builder = new RegistrationBuilder();
-        const testUser = builder
+        const testRegistration = builder
             .setIdFromDb(idFromDb)
             .setFirstName(FIRST_NAME)
             .setLastName(LAST_NAME)
-            .setBirthDate(BIRTH_DATE)
+            .setBirth(BIRTH_DATE)
             .setSex(SEX)
             .setEmail(EMAIL)
             .build();
 
-        assert.equal(testUser.id, idFromDb);
-        assert.equal(testUser.firstName, FIRST_NAME);
-        assert.equal(testUser.lastName, LAST_NAME);
-        assert.equal(testUser.birthDate, BIRTH_DATE);
-        assert.equal(testUser.sex, SEX);
-        assert.equal(testUser.email, EMAIL);
+        assert.equal(testRegistration.id, idFromDb);
+        assert.equal(testRegistration.firstName, FIRST_NAME);
+        assert.equal(testRegistration.lastName, LAST_NAME);
+        assert.equal(testRegistration.birth, BIRTH_DATE);
+        assert.equal(testRegistration.sex, SEX);
+        assert.equal(testRegistration.email, EMAIL);
     })
 })
