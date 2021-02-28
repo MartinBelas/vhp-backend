@@ -156,15 +156,11 @@ module.exports = class YearsDao {
             let lastCounter = await con.query(getYearsQueries(competition).readLastCounterValue);
             await con.query("COMMIT");
 
-            lastCounter = lastCounter[0].vhpCounter;
             
-            if (!lastCounter) {
-                return {
-                    "suggestedStatus": 404,
-                    "error": {
-                        "message": "Last counter not found."
-                    }
-                }
+            if (!lastCounter[0] || lastCounter[0].vhpCounter) {
+                lastCounter = 0;
+            } else {
+                lastCounter = lastCounter[0].vhpCounter;
             }
 
             return lastCounter;

@@ -88,8 +88,6 @@ module.exports = class RegistrationsController {
 
         if (nextYear) {
 
-            console.log(' --- nextYear : ', nextYear);
-    
             const dao = new RegistrationsDao(nextYear);
     
             // Validate request
