@@ -6,6 +6,8 @@ const LoginDao = require('./login-dao-mysql');
 const { LoginBuilder } = require('./login');
 const AdminController = require('../admin/admin-controller.js');
 const ApiKeyService = require('../../common/ApiKeyService');
+const EmailService = require('../../common/EmailService');
+const { ResultBuilder } = require('../../common/result');
 
 const dao = new LoginDao();
 
@@ -22,7 +24,7 @@ module.exports = class LoginController {
                     return;
                 }
             } catch (err) {
-                console.log('LoginController err.: ', err.message);
+                console.log('ERR LoginController login, validate request: ', err.message);
                 res.status(500);
                 return res.send(err.message);
             }
@@ -74,7 +76,7 @@ module.exports = class LoginController {
                     } 
                 })
                 .catch(err => {
-                    console.error('ERR.: ', err);
+                    console.error('ERR LoginController login: ', err);
                     res.send(err);
                 })
         }
@@ -87,6 +89,82 @@ module.exports = class LoginController {
         res.send('logout ok');
     }
 
+    static newPassword = async function (req, res) {
+
+        console.log(' --- Login CTRL newPass.>>>'); //TODO rm
+
+        if (ApiKeyService.getApiKeyOk()) {
+
+            // Validate request
+            try {
+                if (!req.body.newpassword) {
+                    res.status(400).send({ message: "Content can not be empty!" });
+                    return;
+                }
+            } catch (err) {
+                console.log('ERR LoginController newPassword, validate request: ', err.message);
+                res.status(500);
+                return res.send(err.message);
+            }
+
+            if ((!req.body.newpassword.email) || (!req.body.newpassword.password)) {
+                res.status(400).send({ message: "Email and password can not be empty!" });
+                return;
+            }
+            
+            let competition = req.body.newpassword.competition;
+            let email = req.body.newpassword.email;
+            let newPassword = req.body.newpassword.password;
+    
+            let result;
+
+            // find the user/email in the db
+            result = await dao.findOne(competition, email);
+
+            console.log(' ----> result findOne: ', result) //TODO rm
+            if (!result.isOk) {
+                res.status(404).end();
+                return;
+            } 
+
+            // create hash from newPassword
+            const newPasswordHash = hash.hashSync(newPassword);
+
+            // create hash for confirmation
+            const confirmationLink = 
+                hash.hashSync(email.substring(5)+newPassword.substring(5)+Date.now())
+                .substring(30,50)
+                .replace("/", "a").replace("\\", "e").replace(".", "e");
+
+            console.log(' --- confirmationLink: ', confirmationLink); //TODO rm
+
+            // change the password in db
+            result = await dao.updatePassword(email, newPasswordHash, confirmationLink);
+            if (!result.isOk) {
+                res.status(400).end();
+                return;
+            } 
+
+            console.log(' ----> result updatePassword: ', result) //TODO rm
+
+            // send email (with confirmation link)
+            sendNewPasswordEmail(email, confirmationLink)
+                .then( () => {
+                    console.log(' ----> result sendNewPasswordEmail: ', result) //TODO rm
+                    res.status(200).send();
+                }).catch(err => { 
+                    console.log('ERR LoginController newPassword, send confirmation email: ', err);
+                    result = new ResultBuilder()
+                        .setIsOk(false)
+                        .setSuggestedStatus(500)
+                        .setErrMessage('Cannot send confirmation email.')
+                        .build();
+                    res.status(result.status).send(result.errMessage);
+                });
+            
+        }
+    };
+
     static responseWithDbConnectionError = function (res) {
         res.status(503);
         res.send({
@@ -94,3 +172,20 @@ module.exports = class LoginController {
         });
     };
 }
+
+async function sendNewPasswordEmail (email, confirmationLink) {
+
+    const text =  `
+    Byl proveden pokus o změnu hesla do administrace webu VH pulmaratonu.
+    
+    Pokud o tom nic nevíš, tento e-mail smaž.
+
+    Pokud chceš dokončit proces změny hesla, musíš to potvrdit kliknutím na následující odkaz: 
+    www.vh-pulmaraton.cz/nove-heslo/${confirmationLink}
+
+    Paltnost odkazu je 24 hodin.
+
+    `;
+
+    EmailService.sendMail(email, "Zmena hesla pro VH pulmaraton", text);
+};

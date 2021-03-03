@@ -3,9 +3,11 @@
 const dbConnection = require('../../mysqlDbConnection');
 const { LoginBuilder } = require('./login');
 const { ResultBuilder } = require('../../common/result');
+const DateService = require('../../common/DateService');
 
 const queries = {
     readRow: `SELECT * FROM Admin WHERE competition = ? AND email = ?`,
+    updatePassword: `UPDATE Admin SET new_password = ?, confirmation_link = ?, newpassword_timespamp = ? WHERE email = ?`
 }
 
 let builder = new LoginBuilder();
@@ -67,9 +69,42 @@ module.exports = class LoginDao {
                         .setSuggestedStatus(200)
                         .setData(entity)
                         .build();
+        } catch (err) {
+            console.log('ERR Logi dao findOne: ', err);
+            //throw err;
+            return resultBuilder
+                        .setIsOk(false)
+                        .setSuggestedStatus(500)
+                        .setErrMessage(err)
+                        .build();
+        } finally {
+            await con.release();
+            await con.destroy();
+        }
+    }
+
+    async updatePassword(email, newPasswordHash, confirmationLink) {
+        let con = await dbConnection();
+        try {
+            const timeStamp = DateService.getTimestamp();
+            await con.query("START TRANSACTION");
+            await con.query(queries.updatePassword, [
+                newPasswordHash, confirmationLink, timeStamp, email
+            ]);
+            await con.query("COMMIT");
+            return resultBuilder
+                    .setIsOk(true)
+                    .setSuggestedStatus(200)
+                    .build();
         } catch (ex) {
+            await con.query("ROLLBACK");
             console.log(ex);
-            throw ex;
+            return resultBuilder
+                    .setIsOk(false)
+                    .setSuggestedStatus(500)
+                    .setErrMessage('Update error occurred.')
+                    .build();
+            //throw ex;
         } finally {
             await con.release();
             await con.destroy();

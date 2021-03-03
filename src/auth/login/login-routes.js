@@ -9,4 +9,5 @@ module.exports = function LoginRouter(app) {
 
     router.post(`/login`, controller.login);
     router.post(`/logout`, controller.logout);
+    router.post(`/newpassword`, controller.newPassword);
 };
