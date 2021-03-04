@@ -16,7 +16,6 @@ exports.getAll = function(req, res) {
 };
 
 exports.get = function(req, res) {
-    console.log('Ctrl GET Competition, req.params: ', req.params);
     console.log('Ctrl GET Competition id: ', req.params.id);
     Competition.findById(req.params.id)
       .then(data => {
