@@ -1,6 +1,6 @@
 const YearsDao = require('../years/years-dao-mysql');
 
-let nextYearDateYear;
+let nextYearDateYear = "";
 
 class NextYearService {
 
@@ -11,7 +11,9 @@ class NextYearService {
         if (!nextYearDateYear) {
             try {
                 const nextYear = await yearsDao.findNextYear(competition);
-                nextYearDateYear = nextYear.date.substring(0, 4);
+                if (nextYear && nextYear.date) { 
+                    nextYearDateYear = nextYear.date.substring(0, 4);
+                }
             } catch (err) {
                 console.log('ERR NextYearService.getNextYear: ', err);
                 throw err;
