@@ -8,6 +8,7 @@ const AdminController = require('../admin/admin-controller.js');
 const ApiKeyService = require('../../common/ApiKeyService');
 const EmailService = require('../../common/EmailService');
 const { ResultBuilder } = require('../../common/result');
+const DateService = require('../../common/DateService.js');
 
 const dao = new LoginDao();
 
@@ -89,9 +90,7 @@ module.exports = class LoginController {
         res.send('logout ok');
     }
 
-    static newPassword = async function (req, res) {
-
-        console.log(' --- Login CTRL newPass.>>>'); //TODO rm
+    static newPasswordRequest = async function (req, res) {
 
         if (ApiKeyService.getApiKeyOk()) {
 
@@ -121,7 +120,6 @@ module.exports = class LoginController {
             // find the user/email in the db
             result = await dao.findOne(competition, email);
 
-            console.log(' ----> result findOne: ', result) //TODO rm
             if (!result.isOk) {
                 res.status(404).end();
                 return;
@@ -136,22 +134,20 @@ module.exports = class LoginController {
                 .substring(30,50)
                 .replace("/", "a").replace("\\", "e").replace(".", "e");
 
-            console.log(' --- confirmationLink: ', confirmationLink); //TODO rm
-
             // change the password in db
-            result = await dao.updatePassword(email, newPasswordHash, confirmationLink);
+            result = await dao.updatePasswordRequest(email, newPasswordHash, confirmationLink);
             if (!result.isOk) {
                 res.status(400).end();
                 return;
             } 
 
-            console.log(' ----> result updatePassword: ', result) //TODO rm
-
             // send email (with confirmation link)
             sendNewPasswordEmail(email, confirmationLink)
                 .then( () => {
-                    console.log(' ----> result sendNewPasswordEmail: ', result) //TODO rm
-                    res.status(200).send();
+                    result = new ResultBuilder()
+                        .setIsOk(true)
+                        .build();
+                    res.status(200).send(result);
                 }).catch(err => { 
                     console.log('ERR LoginController newPassword, send confirmation email: ', err);
                     result = new ResultBuilder()
@@ -162,6 +158,85 @@ module.exports = class LoginController {
                     res.status(result.status).send(result.errMessage);
                 });
             
+        }
+    };
+
+    static newPasswordConfirmation = async function (req, res) {
+
+        if (ApiKeyService.getApiKeyOk()) {
+
+            // Validate request
+            try {
+                if (!req.params.confirmation) {
+                    res.status(400).send({ message: "Param can not be empty!" });
+                    return;
+                }
+            } catch (err) {
+                console.log('ERR LoginController newPasswordConfirmation, validate request: ', err.message);
+                res.status(500);
+                return res.send(err.message);
+            }
+            
+            let newPasswordConfirmationHash = req.params.confirmation;
+            
+            let result;
+
+            // find the user/email in the db
+            result = await dao.findPasswordConfirmation(newPasswordConfirmationHash)
+                            .catch(err => { 
+                                console.log('ERR LoginController findPasswordConfirmation: ', err);
+                                result = new ResultBuilder()
+                                    .setIsOk(false)
+                                    .setSuggestedStatus(500)
+                                    .setErrMessage('Cannot find confirmation.')
+                                    .build();
+                                res.status(result.status).send(result.errMessage);
+                            });
+
+            if (!result.isOk) {
+                res.status(404).end();
+                return;
+            } 
+
+            // check the timestamp
+            const confirmationTimestamp = result.data;
+            result = DateService.isValid(confirmationTimestamp, 24 * 60 * 60);
+            
+            if (!result) {
+                res.status(410).end();
+                return;
+            }
+
+            // update the password in the db
+            result = await dao.updatePasswordConfirmation(newPasswordConfirmationHash)
+                            .catch(err => { 
+                                console.log('ERR LoginController updatePasswordConfirmation: ', err);
+                                result = new ResultBuilder()
+                                    .setIsOk(false)
+                                    .setSuggestedStatus(500)
+                                    .setErrMessage('Cannot update.')
+                                    .build();
+                                res.status(result.status).send(result.errMessage);
+                            });
+
+            if (!result.isOk) {
+                res.status(404).end();
+                return;
+            } 
+
+            if (result) {
+                result = new ResultBuilder()
+                    .setIsOk(true)
+                    .build();
+                res.status(200).send(result);
+            } else {
+                result = new ResultBuilder()
+                    .setIsOk(false)
+                    .setSuggestedStatus(400)
+                    .setErrMessage('Cannot confirm.')
+                    .build();
+            res.status(result.status).send(result.errMessage);
+            }
         }
     };
 

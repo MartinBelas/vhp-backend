@@ -8,6 +8,7 @@ module.exports = function LoginRouter(app) {
 	app.use(`/api/auth`, router);
 
     router.post(`/login`, controller.login);
-    router.post(`/logout`, controller.logout);
-    router.post(`/newpassword`, controller.newPassword);
+    router.post(`/logout`, controller.logout); //TODO get
+    router.post(`/newpassword`, controller.newPasswordRequest);
+    router.get(`/newpassword/:confirmation`, controller.newPasswordConfirmation);
 };
