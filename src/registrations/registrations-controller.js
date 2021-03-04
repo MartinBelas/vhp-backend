@@ -2,6 +2,7 @@
 
 const RegistrationsDao = require('./registrations-dao-mysql');
 const { RegistrationBuilder, Sex } = require('./registration');
+const { ResultBuilder } = require('../common/result');
 const ApiKeyService = require('../common/ApiKeyService');
 const NextYearService = require('../common/NextYearService');
 const EmailService = require('../common/EmailService');
@@ -28,6 +29,8 @@ module.exports = class RegistrationsController {
 
     static getAll = async function (req, res) {
 
+        console.log('Registration controller, gel all... ');
+
         if (ApiKeyService.getApiKeyOk()) {
             const competition = req.params.competition;
     
@@ -53,7 +56,7 @@ module.exports = class RegistrationsController {
                         RegistrationsController.responseWithDbConnectionError(res);
                     })
             }
-
+            
         }
     };
 
@@ -86,7 +89,7 @@ module.exports = class RegistrationsController {
                 RegistrationsController.responseWithDbConnectionError(res);
             });
 
-        if (nextYear) {
+        if (nextYear && (nextYear.length===4)) {
 
             const dao = new RegistrationsDao(nextYear);
     
@@ -151,12 +154,27 @@ module.exports = class RegistrationsController {
             dao.create(req.params.competition, newRegistration)
                 .then(data => {
                     EmailService.sendMail(newRegistration.email, registration_subject, getRegistrationMailBody(newRegistration));
-                    res.json(data);
+                    const result = new ResultBuilder()
+                        .setIsOk(true)
+                        .build();
+                    //res.status(200).send(result); //TODO rm
+                    res.status(200).json(result);
                 })
                 .catch(err => {
-                    console.error("ERR - Create registration error: ", err);
-                    res.status(500);
-                    res.send(err);
+                    let errMsg;
+                    let suggestedStatus;
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        errMsg = 'Email už v registracích existuje.';
+                        suggestedStatus = 409;
+                    } else {
+                        errMsg = 'Chyba při ukládání registrace: ' + err.code;
+                        suggestedStatus = 500;
+                    }
+                    const result = new ResultBuilder()
+                        .setIsOk(false)
+                        .setErrMessage(errMsg)
+                        .build();
+                    res.status(suggestedStatus).json(result);
                 })
         }
 
