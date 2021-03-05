@@ -62,18 +62,10 @@ module.exports = class YearsController {
             const nextDate = (await dao.findNextYear(competition))
 
             if (!nextDate.isOk) {
-                const result = new ResultBuilder()
-                    .setIsOk(true)
-                    .setData(nextDate)
-                    .build();
-                res.status(200).send(result);
+                res.status(200).send(nextDate);
                 return;    
             }
             const nextYear = nextDate.vhpYear;
-
-            //TODO rm
-            // const racesDao = new RacesDao(nextYear);
-            // racesDao.find(competition)
 
             res.status(200).json(nextDate);
         } catch(err) {
@@ -88,7 +80,7 @@ module.exports = class YearsController {
         let nextDate;
         try {
             nextDate = (await dao.findNextYear(competition))
-            const nextYearDate = nextDate.date;
+            const nextYearDate = nextDate.data.date;
 
             if (!DateService.isInFuture(nextYearDate)) {
                 const msg = 'No races in future defined.';

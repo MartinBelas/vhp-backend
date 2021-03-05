@@ -248,8 +248,14 @@ module.exports = class YearsDao {
                 "date": nextYearDate,
                 "counter": nextYearCounter
             }
+
+            const result = new ResultBuilder()
+                .setIsOk(true)
+                .setSuggestedStatus(200)
+                .setData(nextYear)
+                .build();
             
-            return nextYear;
+            return result;
         } catch (err) {
             console.log("ERR years dao - when obtaining next year: ", err.message);
             throw err;

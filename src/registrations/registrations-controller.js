@@ -155,7 +155,6 @@ module.exports = class RegistrationsController {
                     const result = new ResultBuilder()
                         .setIsOk(true)
                         .build();
-                    //res.status(200).send(result); //TODO rm
                     res.status(200).json(result);
                 })
                 .catch(err => {

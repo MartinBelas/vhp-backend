@@ -8,11 +8,11 @@ class NextYearService {
 
         const yearsDao = new YearsDao();
 
-        if (!nextYearDateYear) {
+        if (!nextYearDateYear || nextYearDateYear.length < 4) {
             try {
                 const nextYear = await yearsDao.findNextYear(competition);
-                if (nextYear && nextYear.date) { 
-                    nextYearDateYear = nextYear.date.substring(0, 4);
+                if (nextYear && nextYear.isOk) { 
+                    nextYearDateYear = nextYear.data.date.substring(0, 4);
                 }
             } catch (err) {
                 console.log('ERR NextYearService.getNextYear: ', err);
