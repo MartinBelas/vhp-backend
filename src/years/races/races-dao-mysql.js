@@ -5,10 +5,10 @@ const {RaceBuilder } = require('./race');
 
 function getQueries(competitionPrefix, year) {
     return {
-        insertRow: `INSERT INTO ` + competitionPrefix + `Races(id, description) VALUES(?,?)`,
+        // insertRow: `INSERT INTO ` + competitionPrefix + `Races` + year + `(id, name) VALUES(?,?)`, // inserting only from years controller
         readAllRows: `SELECT * FROM ` + competitionPrefix + `Races` + year,
         readRow: `SELECT * FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`,
-        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET description = ? WHERE id = ?`,
+        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET name = ? WHERE id = ?`,
         deleteRow: `DELETE FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`
     }
 }
@@ -29,37 +29,37 @@ module.exports = class RacesDao {
         return con;
     }
 
-    async create(newEntity) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            await con.query(
-                queries.insertRow,
-                [newEntity.id, newEntity.description]
-            );
-            await con.query("COMMIT");
-            return newEntity;
-        } catch (ex) {
-            await con.query("ROLLBACK");
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
-        }
-    }
+    //TODO rm
+    // async create(newEntity) {
+    //     let con = await dbConnection();
+    //     try {
+    //         await con.query("START TRANSACTION");
+    //         await con.query(
+    //             getQueries(competition, this.year).insertRow,
+    //             [newEntity.id, newEntity.name]
+    //         );
+    //         await con.query("COMMIT");
+    //         return newEntity;
+    //     } catch (ex) {
+    //         await con.query("ROLLBACK");
+    //         console.log(ex);
+    //         throw ex;
+    //     } finally {
+    //         await con.release();
+    //         await con.destroy();
+    //     }
+    // }
 
-    async find(competition) {
+    async find(competition, year) {
         let con = await dbConnection();
         try {
-                        
             await con.query("START TRANSACTION");
-            const tblRacesDescription = competition + `Races` + this.year;
-            const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesDescription + "'";
+            const tblRacesName = competition + `Races` + year;
+            const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesName + "'";
             let dbRows;
             const racesTableExists = (await con.query(checkRacesTableQuery)).length;
             if (racesTableExists) {
-                dbRows = await con.query(getQueries(competition, this.year).readAllRows);
+                dbRows = await con.query(getQueries(competition, year).readAllRows);
             }
             await con.query("COMMIT");
 
@@ -112,7 +112,7 @@ module.exports = class RacesDao {
             await con.query("START TRANSACTION");
             await con.query(queries.updateRow, [
                 entity.id,
-                entity.description
+                entity.name
             ]);
             await con.query("COMMIT");
             return entity;
@@ -129,7 +129,7 @@ module.exports = class RacesDao {
     build(row) {
         return builder
             .setId(row.id)
-            .setDescription(row.description)
+            .setName(row.name)
             .build();
     }
 };

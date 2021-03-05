@@ -18,4 +18,6 @@ module.exports = function YearsRouter(app) {
     
     router.put(apiPath + `/:id`, controller.update)
     router.delete(apiPath + `/:id`, controller.delete);
+
+    router.get(apiPath + `/next/races`, controller.getNextRaces);
 };

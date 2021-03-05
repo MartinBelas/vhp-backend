@@ -4,6 +4,8 @@ const YearsDao = require('./years-dao-mysql');
 const CategoriesDao = require('./categories/categories-dao-mysql');
 const RacesDao = require('./races/races-dao-mysql');
 const { YearBuilder } = require('./year');
+const { ResultBuilder } = require('../common/result');
+const DateService = require('../common/DateService.js');
 
 const dao = new YearsDao();
 
@@ -57,13 +59,63 @@ module.exports = class YearsController {
 
     static getNext = async function (req, res) {
         const competition = req.params.competition;
-        
+
+        try {
+            nextDate = (await dao.findNextYear(competition))
+            const nextYear = nextDate.vhpYear;
+
+            const racesDao = new RacesDao(nextYear);
+            racesDao.find(competition)
+
+            res.status(200).json(nextDate);
+        } catch(err) {
+            console.error('ERR Years ctrl, get next year: ', err);
+            YearsController.responseWithDbConnectionError(res);
+        }
+    };
+
+    static getNextRaces = async function (req, res) {
+        const competition = req.params.competition;
+
         let nextDate;
         try {
             nextDate = (await dao.findNextYear(competition))
-            res.status(200).json(nextDate);
+            const nextYearDate = nextDate.date;
+
+            if (!DateService.isInFuture(nextYearDate)) {
+                const msg = 'No races in future defined.';
+                console.log(msg);
+                const result = new ResultBuilder()
+                    .setIsOk(false)
+                    .setSuggestedStatus(404)
+                    .setErrMessage(msg)
+                    .build();
+                res.status(result.suggestedStatus).send(result.errMessage);
+                return;
+            }
+
+            const nextYear = nextYearDate.substring(0,4);
+            
+            const racesDao = new RacesDao();
+            racesDao.find(competition, nextYear)
+                .then(result => {
+                    if (result.error) {
+                        if (result.suggestedStatus) {
+                            res.status(result.suggestedStatus);
+                        }
+                        res.json(result.error);
+                    } else {
+                        const races = result.data;
+                        res.status(200).json(result);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    YearsController.responseWithDbConnectionError(res);
+                })
+
         } catch(err) {
-            console.error(err);
+            console.error('ERR Years ctrl, get races: ', err);
             YearsController.responseWithDbConnectionError(res);
         }
     };
@@ -112,11 +164,11 @@ module.exports = class YearsController {
 
         dao.create(req.params.competition, nextYear)
             .then(data => {
-                console.log(data);
+                console.log("Years ctrl, next year created: ", data);
                 res.json(data);
             })
             .catch(err => {
-                console.error(err);
+                console.log("ERR Years ctrl, next year creating: ", err);
                 res.send(err);
             })
     };

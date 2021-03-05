@@ -107,7 +107,7 @@ module.exports = class YearsDao {
             newEntity.races.forEach(race => {
                 con.query(
                     getRacesQueries(competition, newEntity.vhpYear).insertRow,
-                    [race.id, race.description]
+                    [race.id, race.name]
                 );
             });
             await con.query(
