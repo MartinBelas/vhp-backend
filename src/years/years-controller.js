@@ -12,7 +12,6 @@ const dao = new YearsDao();
 module.exports = class YearsController {
 
     static getAll = function (req, res) {
-        console.log('Ctrl GET All Years'); //TODO remove
         dao.find(req.params.competition)
             .then(data => {
                 res.json(data);
@@ -24,7 +23,6 @@ module.exports = class YearsController {
     };
 
     static getLast = async function (req, res) {
-        console.log('Ctrl GET LAST Year'); //TODO remove
         const competition = req.params.competition;
         
         let lastYear;
@@ -61,11 +59,21 @@ module.exports = class YearsController {
         const competition = req.params.competition;
 
         try {
-            nextDate = (await dao.findNextYear(competition))
+            const nextDate = (await dao.findNextYear(competition))
+
+            if (!nextDate.isOk) {
+                const result = new ResultBuilder()
+                    .setIsOk(true)
+                    .setData(nextDate)
+                    .build();
+                res.status(200).send(result);
+                return;    
+            }
             const nextYear = nextDate.vhpYear;
 
-            const racesDao = new RacesDao(nextYear);
-            racesDao.find(competition)
+            //TODO rm
+            // const racesDao = new RacesDao(nextYear);
+            // racesDao.find(competition)
 
             res.status(200).json(nextDate);
         } catch(err) {
@@ -96,8 +104,8 @@ module.exports = class YearsController {
 
             const nextYear = nextYearDate.substring(0,4);
             
-            const racesDao = new RacesDao();
-            racesDao.find(competition, nextYear)
+            const racesDao = new RacesDao(nextYear);
+            racesDao.find(competition)
                 .then(result => {
                     if (result.error) {
                         if (result.suggestedStatus) {
@@ -142,7 +150,7 @@ module.exports = class YearsController {
 
         // Validate request
         if (!req.body.nextDate) {
-            res.status(400).send({ message: "Next date can not be empty!" });
+            res.status(400).send({ message: "Next date cannot be empty!" });
             return;
         }
 

@@ -4,6 +4,7 @@ const dbConnection = require('../mysqlDbConnection');
 const { YearBuilder } = require('./year');
 const { CategoryBuilder } = require('./categories/category');
 const { RaceBuilder } = require('./races/race');
+const { ResultBuilder } = require('../common/result');
 
 function getYearsQueries(competitionPrefix) {
     const tblName = competitionPrefix + `Years`;
@@ -13,7 +14,7 @@ function getYearsQueries(competitionPrefix) {
         readLastYearRow: `SELECT vhpYear, DATE_FORMAT(vhpDate, '%Y-%m-%d') as vhpDate, vhpCounter, acceptRegistrations FROM ` + tblName + ` WHERE vhpYear=(SELECT MAX(vhpYear) FROM ` + tblName + `)`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE vhpYear = ?`,
         readLastCounterValue: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`,
-        readNextYearValue: `SELECT vhpDate, vhpCounter FROM vhpYears WHERE vhpDate=(SELECT MAX(vhpDate) FROM vhpYears) AND vhpDate>CURDATE()`
+        readNextYearValue: `SELECT vhpDate, vhpCounter FROM vhpYears WHERE vhpDate=(SELECT MAX(vhpDate) FROM vhpYears) AND vhpDate>=CURDATE()`
         //readNextDateRow: `SELECT vhpCounter FROM ` + tblName + ` WHERE vhpCounter=(SELECT MAX(vhpCounter) FROM ` + tblName + `)`
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
@@ -34,8 +35,8 @@ function getCategoriesQueries(competitionPrefix, year) {
 function getRacesQueries(competitionPrefix, year) {
     const tblName = competitionPrefix + `Races` + year;
     return {
-        createTable: `CREATE TABLE ` + tblName + ` (id int, name varchar(50))`,
-        insertRow: `INSERT INTO ` + tblName + ` (id, name) VALUES(?,?)`,
+        createTable: `CREATE TABLE ` + tblName + ` (id int, description varchar(50))`,
+        insertRow: `INSERT INTO ` + tblName + ` (id, description) VALUES(?,?)`,
         readAllRows: `SELECT * FROM ` + tblName,
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
@@ -107,7 +108,7 @@ module.exports = class YearsDao {
             newEntity.races.forEach(race => {
                 con.query(
                     getRacesQueries(competition, newEntity.vhpYear).insertRow,
-                    [race.id, race.name]
+                    [race.id, race.description]
                 );
             });
             await con.query(
@@ -157,7 +158,7 @@ module.exports = class YearsDao {
             await con.query("COMMIT");
 
             
-            if (!lastCounter[0] || lastCounter[0].vhpCounter) {
+            if (!lastCounter[0] || !lastCounter[0].vhpCounter) {
                 lastCounter = 0;
             } else {
                 lastCounter = lastCounter[0].vhpCounter;
@@ -191,21 +192,22 @@ module.exports = class YearsDao {
                 }
             }
 
-            if (typeof dbRowsCategories !== 'undefined') {
-                const categories = [];
-                dbRowsCategories.map(row => {
-                    categories.push(this.buildCategory(row));
-                });
-                if (categories.length > 0) entity.setCategories(categories);
-            }
+            //TODO rm
+            // if (typeof dbRowsCategories !== 'undefined') {
+            //     const categories = [];
+            //     dbRowsCategories.map(row => {
+            //         categories.push(this.buildCategory(row));
+            //     });
+            //     if (categories.length > 0) entity.setCategories(categories);
+            // }
 
-            if (typeof dbRowsRaces !== 'undefined') {
-                const races = [];
-                dbRowsRaces.map(row => {
-                    races.push(this.buildRace(row));
-                });
-                if (races.length > 0) entity.setRaces(races);
-            }
+            // if (typeof dbRowsRaces !== 'undefined') {
+            //     const races = [];
+            //     dbRowsRaces.map(row => {
+            //         races.push(this.buildRace(row));
+            //     });
+            //     if (races.length > 0) entity.setRaces(races);
+            // }
 
             return entity;
         } catch (ex) {
@@ -227,12 +229,12 @@ module.exports = class YearsDao {
 
 
             if (!nextYear || nextYear.length < 1) {
-                return {
-                    "suggestedStatus": 404,
-                    "error": {
-                        "message": "Next year not found."
-                    }
-                }
+                const result = new ResultBuilder()
+                    .setIsOk(false)
+                    .setSuggestedStatus(404)
+                    .setErrMessage("Next year not found.")
+                    .build();
+                return result;
             }
 
             let nextYearDate = nextYear[0].vhpDate;
@@ -323,7 +325,7 @@ module.exports = class YearsDao {
     buildRace(row) {
         return raceBuilder
             .setId(row.id)
-            .setName(row.name)
+            .setDescription(row.description)
             .build();
     }
 };

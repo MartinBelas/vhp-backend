@@ -5,10 +5,10 @@ const {RaceBuilder } = require('./race');
 
 function getQueries(competitionPrefix, year) {
     return {
-        // insertRow: `INSERT INTO ` + competitionPrefix + `Races` + year + `(id, name) VALUES(?,?)`, // inserting only from years controller
+        // insertRow: `INSERT INTO ` + competitionPrefix + `Races` + year + `(id, description) VALUES(?,?)`, // inserting only from years controller
         readAllRows: `SELECT * FROM ` + competitionPrefix + `Races` + year,
         readRow: `SELECT * FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`,
-        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET name = ? WHERE id = ?`,
+        updateRow: `UPDATE ` + competitionPrefix + `Races` + year + ` SET description = ? WHERE id = ?`,
         deleteRow: `DELETE FROM ` + competitionPrefix + `Races` + year + ` WHERE id = ?`
     }
 }
@@ -36,7 +36,7 @@ module.exports = class RacesDao {
     //         await con.query("START TRANSACTION");
     //         await con.query(
     //             getQueries(competition, this.year).insertRow,
-    //             [newEntity.id, newEntity.name]
+    //             [newEntity.id, newEntity.description]
     //         );
     //         await con.query("COMMIT");
     //         return newEntity;
@@ -50,16 +50,16 @@ module.exports = class RacesDao {
     //     }
     // }
 
-    async find(competition, year) {
+    async find(competition) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            const tblRacesName = competition + `Races` + year;
+            const tblRacesName = competition + `Races` + this.year;
             const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesName + "'";
             let dbRows;
             const racesTableExists = (await con.query(checkRacesTableQuery)).length;
             if (racesTableExists) {
-                dbRows = await con.query(getQueries(competition, year).readAllRows);
+                dbRows = await con.query(getQueries(competition, this.year).readAllRows);
             }
             await con.query("COMMIT");
 
@@ -112,7 +112,7 @@ module.exports = class RacesDao {
             await con.query("START TRANSACTION");
             await con.query(queries.updateRow, [
                 entity.id,
-                entity.name
+                entity.description
             ]);
             await con.query("COMMIT");
             return entity;
@@ -129,7 +129,7 @@ module.exports = class RacesDao {
     build(row) {
         return builder
             .setId(row.id)
-            .setName(row.name)
+            .setDescription(row.description)
             .build();
     }
 };
