@@ -29,8 +29,6 @@ module.exports = class RegistrationsController {
 
     static getAll = async function (req, res) {
 
-        console.log('Registration controller, gel all... ');
-
         if (ApiKeyService.getApiKeyOk()) {
             const competition = req.params.competition;
     

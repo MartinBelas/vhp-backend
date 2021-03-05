@@ -17,7 +17,7 @@ module.exports = class NewsController {
                     res.json(data);
                 })
                 .catch(err => {
-                    console.error(err);
+                    console.log('ERR Get All News: ', err);
                     NewsController.responseWithDbConnectionError(res);
                 })
         }
@@ -38,7 +38,7 @@ module.exports = class NewsController {
                     }
                 })
                 .catch(err => {
-                    console.error(err);
+                    console.error('ERR Get One News: ', err);
                     NewsController.responseWithDbConnectionError(res);
                 })
         }
@@ -63,11 +63,11 @@ module.exports = class NewsController {
 
                 dao.create(req.params.competition, newNewsItem)
                     .then(data => {
-                        console.log(data);
+                        console.log('Create News: ', data);
                         res.json(data);
                     })
                     .catch(err => {
-                        console.error(err);
+                        console.log('ERR Create News: ', err);
                         res.send(err);
                     })
             }).catch( authenticationFailure => {
@@ -94,7 +94,7 @@ module.exports = class NewsController {
                         res.json(data);
                     })
                     .catch(err => {
-                        console.error(err);
+                        console.log('ERR Update News: ', err);
                         res.send(err);
                     });
             }).catch( authenticationFailure => {
@@ -112,11 +112,10 @@ module.exports = class NewsController {
                 }
                 dao.remove(req.params.competition, req.params.id)
                     .then(data => {
-                        console.log(data);
                         res.json(data);
                     })
                     .catch(err => {
-                        console.error(err);
+                        console.log('ERR Delete News: ', err);
                         res.send(err.message);
                     });
             }).catch( authenticationFailure => {
