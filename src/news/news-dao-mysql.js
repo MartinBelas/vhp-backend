@@ -17,6 +17,7 @@ function getQueries(competitionPrefix, count) {
 
 let builder = new NewsItemBuilder();
 
+let newsCache = [];
 module.exports = class NewsDao {
 
     async getDbConnection() {
@@ -36,6 +37,8 @@ module.exports = class NewsDao {
                 [newEntity.id, newEntity.title, newEntity.content, newEntity.author]
             );
             await con.query("COMMIT");
+            const newCache = await this.find(competition, 10, true);
+            newsCache = newCache;
             return newEntity;
         } catch (ex) {
             await con.query("ROLLBACK");
@@ -47,73 +50,91 @@ module.exports = class NewsDao {
         }
     }
 
-    async find(competition, count) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            let dbRows;
-            if (count !== undefined && count>0) {
-                dbRows = await con.query(getQueries(competition, count).readCountRows);
-            } else {
-                dbRows = await con.query(getQueries(competition, 0).readAllRows);
-            }
-            await con.query("COMMIT");
+    async find(competition, count, updateFromDb) {
 
-            if (!dbRows) {
-                throw { "message": "No data from db." };
-            }
+        const cache = newsCache;
 
-            let entities = dbRows.map(row => {
-                return builder
-                    .setIdFromDb(row.id)
-                    .setTitle(row.title)
-                    .setContent(row.content)
-                    .setAuthor(row.author)
-                    .setDate(row.timestamp)
-                    .build();
-            });
-            return entities;
-        } catch (ex) {
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
+        if (Array.isArray(cache) && cache.length > 0 && !updateFromDb) {
+            return cache;
+        } else {
+            let con = await dbConnection();
+            try {
+                await con.query("START TRANSACTION");
+                let dbRows;
+                if (count !== undefined && count>0) {
+                    dbRows = await con.query(getQueries(competition, count).readCountRows);
+                } else {
+                    dbRows = await con.query(getQueries(competition, 0).readAllRows);
+                }
+                await con.query("COMMIT");
+    
+                if (!dbRows) {
+                    throw { "message": "No data from db." };
+                }
+    
+                let entities = dbRows.map(row => {
+                    return builder
+                        .setIdFromDb(row.id)
+                        .setTitle(row.title)
+                        .setContent(row.content)
+                        .setAuthor(row.author)
+                        .setDate(row.timestamp)
+                        .build();
+                });
+                newsCache = entities;
+                return entities;
+            } catch (ex) {
+                console.log(ex);
+                throw ex;
+            } finally {
+                await con.release();
+                await con.destroy();
+            }
         }
+
+        
     }
 
-    async findById(competition, id) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            let dbRow = (await con.query(getQueries(competition, 0).readRow, [id]))[0];
-            await con.query("COMMIT");
+    async findById(competition, requestedId) {
 
-            if (!dbRow) {
-                return {
-                    "suggestedStatus": 404,
-                    "error": {
-                        "message": "News not found."
+        const cache = newsCache;
+
+        if (Array.isArray(cache) && cache.length > 0) {
+            return cache.find(x => x.id === requestedId);
+        } else {
+            let con = await dbConnection();
+            try {
+                await con.query("START TRANSACTION");
+                let dbRow = (await con.query(getQueries(competition, 0).readRow, [requestedId]))[0];
+                await con.query("COMMIT");
+
+                if (!dbRow) {
+                    return {
+                        "suggestedStatus": 404,
+                        "error": {
+                            "message": "News not found."
+                        }
                     }
                 }
+                let entity = builder
+                    .setIdFromDb(dbRow.id)
+                    .setTitle(dbRow.title)
+                    .setContent(dbRow.content)
+                    .setAuthor(dbRow.author)
+                    .setDate(dbRow.timestamp)
+                    .build();
+                return entity;
+            } catch (ex) {
+                console.log(ex);
+                throw ex;
+            } finally {
+                await con.release();
+                await con.destroy();
             }
-            let entity = builder
-                .setIdFromDb(dbRow.id)
-                .setTitle(dbRow.title)
-                .setContent(dbRow.content)
-                .setAuthor(dbRow.author)
-                .setDate(dbRow.timestamp)
-                .build();
-            return entity;
-        } catch (ex) {
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
-        }
+        }       
     }
 
+    //TODO update cache
     async update(competition, entity) {
         let con = await dbConnection();
         try {
@@ -136,6 +157,7 @@ module.exports = class NewsDao {
         }
     }
 
+    //TODO update cache
     async remove(competition, id) {
         let con = await dbConnection();
         try {
