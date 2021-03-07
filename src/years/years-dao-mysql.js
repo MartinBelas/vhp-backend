@@ -26,7 +26,7 @@ function getCategoriesQueries(competitionPrefix, year) {
     return {
         createTable: `CREATE TABLE ` + tblName + ` (id varchar(4), description varchar(50))`,
         insertRow: `INSERT INTO ` + tblName + ` (id, description) VALUES(?,?)`,
-        readAllRows: `SELECT * FROM ` + tblName,
+        //readAllRows: `SELECT * FROM ` + tblName,
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
     }
@@ -37,7 +37,7 @@ function getRacesQueries(competitionPrefix, year) {
     return {
         createTable: `CREATE TABLE ` + tblName + ` (id int, description varchar(50))`,
         insertRow: `INSERT INTO ` + tblName + ` (id, description) VALUES(?,?)`,
-        readAllRows: `SELECT * FROM ` + tblName,
+        //readAllRows: `SELECT * FROM ` + tblName,
         //updateRow: `UPDATE Years SET Years.vhpDate = ?, Years.acceptRegistrations WHERE Years.vhpYear = ?`,
         //deleteRow: `DELETE FROM Years WHERE Years.vhpYear = ?`
     }
@@ -74,6 +74,7 @@ let builder = new YearBuilder();
 let categoryBuilder = new CategoryBuilder();
 let raceBuilder = new RaceBuilder();
 
+let nextYearCache = "";
 module.exports = class YearsDao {
 
     async getDbConnection() {
@@ -219,51 +220,59 @@ module.exports = class YearsDao {
         }
     }
 
-    async findNextYear(competition) {
-        let nextYear;
-        try {
-            let con = await dbConnection();
-            await con.query("START TRANSACTION");
-            nextYear = await con.query(getYearsQueries(competition).readNextYearValue);
-            await con.query("COMMIT");
+    async findNextYear(competition, updateFromDb) {
 
+        const cache = nextYearCache;
 
-            if (!nextYear || nextYear.length < 1) {
+        if (cache.isOk) {
+            return cache;
+        } else {
+            let nextYear;
+            try {
+                let con = await dbConnection();
+                await con.query("START TRANSACTION");
+                nextYear = await con.query(getYearsQueries(competition).readNextYearValue);
+                await con.query("COMMIT");
+    
+    
+                if (!nextYear || nextYear.length < 1) {
+                    const result = new ResultBuilder()
+                        .setIsOk(false)
+                        .setSuggestedStatus(404)
+                        .setErrMessage("Next year not found.")
+                        .build();
+                    return result;
+                }
+    
+                let nextYearDate = nextYear[0].vhpDate;
+                const nextYearCounter = nextYear[0].vhpCounter;
+    
+                let month = nextYearDate.getMonth()+1;
+                if (month < 10) month = "0"+month;
+                nextYearDate = nextYearDate.getFullYear()+"-"+month+"-"+nextYearDate.getDate();
+                
+                nextYear = {
+                    "date": nextYearDate,
+                    "counter": nextYearCounter
+                }
+    
                 const result = new ResultBuilder()
-                    .setIsOk(false)
-                    .setSuggestedStatus(404)
-                    .setErrMessage("Next year not found.")
+                    .setIsOk(true)
+                    .setSuggestedStatus(200)
+                    .setData(nextYear)
                     .build();
+                    
+                nextYearCache = result;
                 return result;
-            }
-
-            let nextYearDate = nextYear[0].vhpDate;
-            const nextYearCounter = nextYear[0].vhpCounter;
-
-            let month = nextYearDate.getMonth()+1;
-            if (month < 10) month = "0"+month;
-            nextYearDate = nextYearDate.getFullYear()+"-"+month+"-"+nextYearDate.getDate();
-            
-            nextYear = {
-                "date": nextYearDate,
-                "counter": nextYearCounter
-            }
-
-            const result = new ResultBuilder()
-                .setIsOk(true)
-                .setSuggestedStatus(200)
-                .setData(nextYear)
-                .build();
-            
-            return result;
-        } catch (err) {
-            console.log("ERR years dao - when obtaining next year: ", err.message);
-            throw err;
-            //await Promise.reject(nextYear);
-        } finally {
-            if (typeof con !== 'undefined' && con) {
-                await con.release();
-                await con.destroy();
+            } catch (err) {
+                console.log("ERR years dao - when obtaining next year: ", err.message);
+                throw err;
+                //await Promise.reject(nextYear);
+            } finally {
+                if (typeof con !== 'undefined' && con) {
+                    await con.release();
+                    await con.destroy();
+                }
             }
         }
     }

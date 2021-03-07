@@ -16,6 +16,7 @@ function getQueries(competitionPrefix, year) {
 
 let builder = new RegistrationBuilder();
 
+let registrationsCache = [];
 module.exports = class RegistrationsDao {
 
     constructor(year) {
@@ -63,37 +64,45 @@ module.exports = class RegistrationsDao {
         }
     }
 
-    async find(competition) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            let dbRows = await con.query(getQueries(competition, this.year).readAllRows);
-            await con.query("COMMIT");
+    async find(competition, updateFromDb) {
+        
+        const cache = registrationsCache;
 
-            if (!dbRows) {
-                throw {"message":"No data from db."};    
+        if (Array.isArray(cache) && cache.length > 0 && !updateFromDb) {
+            return cache;
+        } else {
+            let con = await dbConnection();
+            try {
+                await con.query("START TRANSACTION");
+                let dbRows = await con.query(getQueries(competition, this.year).readAllRows);
+                await con.query("COMMIT");
+    
+                if (!dbRows) {
+                    throw {"message":"No data from db."};    
+                }
+    
+                let entities = dbRows.map(row => {
+                    return builder
+                        .setIdFromDb(row.id)
+                        .setFirstName(row.firstname)
+                        .setLastName(row.lastname)
+                        .setBirth(row.birth)
+                        .setSex(Sex[row.sex])
+                        .setEmail(row.email)
+                        .setAddress(row.address)
+                        .setClub(row.club)
+                        .setRace(row.race)
+                        .build();
+                });
+                registrationsCache = entities;
+                return entities;
+            } catch (ex) {
+                console.log(ex);
+                throw ex;
+            } finally {
+                await con.release();
+                await con.destroy();
             }
-
-            let entities = dbRows.map(row => {
-                return builder
-                    .setIdFromDb(row.id)
-                    .setFirstName(row.firstname)
-                    .setLastName(row.lastname)
-                    .setBirth(row.birth)
-                    .setSex(Sex[row.sex])
-                    .setEmail(row.email)
-                    .setAddress(row.address)
-                    .setClub(row.club)
-                    .setRace(row.race)
-                    .build();
-            });
-            return entities;
-        } catch (ex) {
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
         }
     }
 

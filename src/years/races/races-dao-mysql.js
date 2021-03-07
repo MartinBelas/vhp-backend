@@ -15,6 +15,7 @@ function getQueries(competitionPrefix, year) {
 
 let builder = new RaceBuilder();
 
+let racesCache = [];
 module.exports = class RacesDao {
 
     constructor(year) {
@@ -50,34 +51,43 @@ module.exports = class RacesDao {
     //     }
     // }
 
-    async find(competition) {
-        let con = await dbConnection();
-        try {
-            await con.query("START TRANSACTION");
-            const tblRacesName = competition + `Races` + this.year;
-            const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesName + "'";
-            let dbRows;
-            const racesTableExists = (await con.query(checkRacesTableQuery)).length;
-            if (racesTableExists) {
-                dbRows = await con.query(getQueries(competition, this.year).readAllRows);
-            }
-            await con.query("COMMIT");
+    async find(competition, updateFromDb) {
 
-            if (!dbRows) {
-                return [];
-            }
+        const cache = racesCache;
 
-            let entities = dbRows.map(row => {
-                return this.build(row);
-            });
-            return entities;
-        } catch (ex) {
-            console.log(ex);
-            throw ex;
-        } finally {
-            await con.release();
-            await con.destroy();
+        if (Array.isArray(cache) && cache.length > 0 && !updateFromDb) {
+            return cache;
+        } else {
+            let con = await dbConnection();
+            try {
+                await con.query("START TRANSACTION");
+                const tblRacesName = competition + `Races` + this.year;
+                const checkRacesTableQuery = "SHOW TABLES LIKE '" + tblRacesName + "'";
+                let dbRows;
+                const racesTableExists = (await con.query(checkRacesTableQuery)).length;
+                if (racesTableExists) {
+                    dbRows = await con.query(getQueries(competition, this.year).readAllRows);
+                }
+                await con.query("COMMIT");
+    
+                if (!dbRows) {
+                    return [];
+                }
+    
+                let entities = dbRows.map(row => {
+                    return this.build(row);
+                });
+                racesCache = entities;
+                return entities;
+            } catch (ex) {
+                console.log(ex);
+                throw ex;
+            } finally {
+                await con.release();
+                await con.destroy();
+            }
         }
+
     }
 
      async findById(competition, id) {
