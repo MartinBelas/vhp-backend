@@ -2,7 +2,8 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const { ResultBuilder } = require('./result');
 
-const sender_email = "vh-pulmaraton@seznam.cz";
+const sender_email = process.env.SENDER_EMAIL;
+const bcc = process.env.SENDER_EMAIL;
 
 class EmailService {
 
@@ -11,6 +12,7 @@ class EmailService {
         const msg = {
             from: sender_email,
             to: to,
+            bcc: bcc,
             subject: subject,
             text: text
         }
