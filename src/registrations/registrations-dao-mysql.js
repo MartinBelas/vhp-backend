@@ -7,7 +7,7 @@ function getQueries(competitionPrefix, year) {
     const tblName = competitionPrefix + `Runners` + year;
     return {
         insertRow: `INSERT INTO ` + tblName + `(id, email, firstname, lastname, birth, sex, address, phone, club, race, comment, category, create_time) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        readAllRows: `SELECT * FROM ` + tblName,
+        readAllRows: `SELECT * FROM ` + tblName + ` ORDER BY create_time DESC`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE id = ?`,
         //updateRow: `UPDATE ` + tblName + ` SET User.firstname = ?, User.lastname = ?, User.birthdate = ?, User.sex = ?, User.email = ? WHERE User.id = ?`,
         //deleteRow: `DELETE FROM ` + tblName + ` WHERE User.id = ?`
