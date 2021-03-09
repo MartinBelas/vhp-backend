@@ -54,6 +54,7 @@ module.exports = class RegistrationsDao {
                 ]
             );
             await con.query("COMMIT");
+            await this.find(competition, true);
             return newEntity;
         } catch (err) {
             await con.query("ROLLBACK");
