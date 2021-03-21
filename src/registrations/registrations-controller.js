@@ -28,6 +28,8 @@ function getRegistrationMailBody(newRegistration) {
 module.exports = class RegistrationsController {
 
     static getAll = async function (req, res) {
+        
+        console.log('GET Regs.');
 
         if (ApiKeyService.getApiKeyOk()) {
             const competition = req.params.competition;
