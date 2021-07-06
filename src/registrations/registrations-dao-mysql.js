@@ -9,7 +9,7 @@ function getQueries(competitionPrefix, year) {
         insertRow: `INSERT INTO ` + tblName + `(id, email, firstname, lastname, birth, sex, address, phone, club, race, comment, category, create_time) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         readAllRows: `SELECT * FROM ` + tblName + ` ORDER BY create_time DESC`,
         readRow: `SELECT * FROM ` + tblName + ` WHERE id = ?`,
-        //updateRow: `UPDATE ` + tblName + ` SET User.firstname = ?, User.lastname = ?, User.birthdate = ?, User.sex = ?, User.email = ? WHERE User.id = ?`,
+        updateRow: `UPDATE ` + tblName + ` SET paid = ? WHERE id = ?`,
         //deleteRow: `DELETE FROM ` + tblName + ` WHERE User.id = ?`
     }
 }
@@ -93,6 +93,7 @@ module.exports = class RegistrationsDao {
                         .setAddress(row.address)
                         .setClub(row.club)
                         .setRace(row.race)
+                        .setPaid(row.paid == 1 ? true : false)
                         .build();
                 });
                 registrationsCache = entities;
@@ -107,11 +108,11 @@ module.exports = class RegistrationsDao {
         }
     }
 
-    async findById(id) {
+    async findById(competition, id) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            let dbRow = (await con.query(queries.readRow, [id]))[0];
+            let dbRow = (await con.query(getQueries(competition, this.year).readRow, [id]))[0];
             await con.query("COMMIT");
 
             if (!dbRow) {
@@ -126,9 +127,10 @@ module.exports = class RegistrationsDao {
                     .setIdFromDb(dbRow.id)
                     .setFirstName(dbRow.firstname)
                     .setLastName(dbRow.lastname)
-                    .setBirthDate(dbRow.birthdate)
+                    .setBirth(dbRow.birth)
                     .setSex(Sex[dbRow.sex])
                     .setEmail(dbRow.email)
+                    .setPaid(dbRow.paid)
                     .build();
             return entity;
         } catch (ex) {
@@ -140,16 +142,12 @@ module.exports = class RegistrationsDao {
         }
     }
 
-    async update(entity) {
+    async update(competition, entity) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            await con.query(queries.updateRow, [
-                entity.firstName,
-                entity.lastName,
-                entity.birthDate,
-                entity.sex.code,
-                entity.email,
+            await con.query(getQueries(competition, this.year).updateRow, [
+                entity.paid,
                 entity.id
             ]);
             await con.query("COMMIT");
@@ -164,11 +162,11 @@ module.exports = class RegistrationsDao {
         }
     }
 
-    async remove(id) {
+    async remove(competition, id) {
         let con = await dbConnection();
         try {
             await con.query("START TRANSACTION");
-            await con.query(queries.deleteRow, [id]);
+            await con.query(getQueries(competition, this.year).deleteRow, [id]);
             await con.query("COMMIT");
             return true;
         } catch (ex) {

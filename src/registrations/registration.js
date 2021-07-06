@@ -121,17 +121,11 @@ class Registration {
         this.category = builder.category;
     }
 
-    updateLastName(value) {
+    updatPaid(value) {
         if (value) {
-            this.lastName = value;
-        }
-    }
-
-    updateEmail(value) {
-        if (value) {
-            this.email = value;
+            this.paid = value;
         }
     }
 }
 
-module.exports = { RegistrationBuilder, Registration, Sex }
+module.exports = { Registration, RegistrationBuilder, Registration, Sex }

@@ -17,6 +17,6 @@ module.exports = function RegistrationsRouter(app) {
     router.post(apiPath, controller.create);
     
     //TODO for adm only
-    //router.put(apiPath + `/:id`, controller.update)
+    router.put(apiPath + `/:id`, controller.update)
     //router.delete(apiPath + `/:id`, controller.delete);
 };

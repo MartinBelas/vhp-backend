@@ -1,7 +1,7 @@
 'use strict';
 
 const RegistrationsDao = require('./registrations-dao-mysql');
-const { RegistrationBuilder, Sex } = require('./registration');
+const { Registration, RegistrationBuilder, Sex } = require('./registration');
 const { ResultBuilder } = require('../common/result');
 const ApiKeyService = require('../common/ApiKeyService');
 const NextYearService = require('../common/NextYearService');
@@ -28,14 +28,12 @@ function getRegistrationMailBody(newRegistration) {
 module.exports = class RegistrationsController {
 
     static getAll = async function (req, res) {
-        
-        console.log('GET Regs.');
 
         if (ApiKeyService.getApiKeyOk()) {
+
             const competition = req.params.competition;
-    
             const nextYear = await NextYearService.getNextYear(competition)
-                .catch ( e => {
+                .catch(e => {
                     console.log('ERR Registration controller, gel all: ', "error when obtaining next year");
                     RegistrationsController.responseWithDbConnectionError(res);
                 });
@@ -43,26 +41,27 @@ module.exports = class RegistrationsController {
             if (nextYear) {
 
                 const dao = new RegistrationsDao(nextYear);
-        
-                dao.find(competition)
+
+                dao.find(competition, true)
                     .then(data => {
                         data.forEach(element => { element.email = "" });
                         data.forEach(element => { element.birth = "" });
                         data.forEach(element => { element.phone = "" });
-                        res.json(data);
+                        res.status(200).json(data);
                     })
                     .catch(err => {
                         console.log('ERR Registration controller, gel all, processing data: ', err);
                         RegistrationsController.responseWithDbConnectionError(res);
                     })
+            } else {
+                console.log('ERR Registration controller, gel all - wrong next year: ', nextYear);
             }
-            
         }
     };
 
     //TODO for adm only
     // static get = function (req, res) {
-    //     dao.findById(req.params.id)
+    //     dao.findById(competition, req.params.id)
     //         .then(result => {
     //             if (result.error) {
     //                 if (result.suggestedStatus) {
@@ -82,17 +81,16 @@ module.exports = class RegistrationsController {
     static create = async function (req, res) {
 
         const competition = req.params.competition;
-
         const nextYear = await NextYearService.getNextYear(competition)
-            .catch ( e => {
-                console.log('ERR Registration controller, gel all: ', "error when obtaining next year");
+            .catch(e => {
+                console.log('ERR Registration controller, creat: ', "error when obtaining next year");
                 RegistrationsController.responseWithDbConnectionError(res);
             });
 
-        if (nextYear && (nextYear.length===4)) {
+        if (nextYear && (nextYear.length === 4)) {
 
             const dao = new RegistrationsDao(nextYear);
-    
+
             // Validate request
             if (!req.body.registration.email) {
                 res.status(400).send({ message: "Email can not be empty!" });
@@ -175,50 +173,78 @@ module.exports = class RegistrationsController {
                         .build();
                     res.status(suggestedStatus).json(result);
                 })
+        } else {
+            console.log('ERR Registration controller, create - wrong next year: ', nextYear);
         }
-
-
     };
 
     static update = async function (req, res) {
+
         if (!req.params.id) {
             res.status(400).send({ message: "Id can not be empty!" });
             return;
         }
-        let user = await dao.findById(req.params.id);
-        if (req.body.lastname) { user.updateLastName(req.body.lastname) };
-        if (req.body.email) { user.updateLastName(req.body.email) };
-        dao.update(user)
-            .then(data => {
-                console.log(data);
-                data = JSON.parse(JSON.stringify(data));
-            })
-            .catch(err => {
-                console.error(err);
-                res.send(err);
-            });
-    };
 
-    static delete = function (req, res) {
-        if (!req.params.id) {
-            res.status(400).send({ message: "Id can not be empty!" });
-            return;
+        const competition = req.params.competition;
+        const nextYear = await NextYearService.getNextYear(competition)
+            .catch(e => {
+                console.log('ERR Registration controller, update: ', "error when obtaining next year");
+                RegistrationsController.responseWithDbConnectionError(res);
+            });
+
+        if (nextYear && (nextYear.length === 4)) {
+
+            const dao = new RegistrationsDao(nextYear);
+            
+            //TODO user type Registration;
+            let user = await dao.findById(competition, req.params.id);
+            //if (req.body.paid) { user.updatePaid(req.body.registration.paid) };
+            if (req.body.registration.paid !== undefined) {
+                if (req.body.registration.paid === 'true' || req.body.registration.paid === true) {
+                    user.paid = 1;
+                }
+                else {
+                    user.paid = 0;
+                }
+            };
+            
+            dao.update(competition, user)
+                .then(data => {
+                    data = JSON.parse(JSON.stringify(data));
+                    res.status(200).json(data);
+                    // or res.status(204);
+                })
+                .catch(err => {
+                    console.error(err);
+                    res.send(err);
+                });
+        } else {
+            console.log('ERR Registration controller, update - wrong next year: ', nextYear);
         }
-        dao.remove(req.params.id)
-            .then(data => {
-                console.log(data);
-                res.json(data);
-            })
-            .catch(err => {
-                console.error(err);
-                res.send(err);
-            });
+
+
     };
 
-    static responseWithDbConnectionError = function (res) {
-        res.status(503);
-        res.send({
-            "message": "Error when connecting to db."
-        });
-    };
+    // static delete = function (req, res) {
+    //     if (!req.params.id) {
+    //         res.status(400).send({ message: "Id can not be empty!" });
+    //         return;
+    //     }
+    //     dao.remove(competition, req.params.id)
+    //         .then(data => {
+    //             console.log(data);
+    //             res.json(data);
+    //         })
+    //         .catch(err => {
+    //             console.error(err);
+    //             res.send(err);
+    //         });
+    // };
+
+    // static responseWithDbConnectionError = function (res) {
+    //     res.status(503);
+    //     res.send({
+    //         "message": "Error when connecting to db."
+    //     });
+    // };
 }
