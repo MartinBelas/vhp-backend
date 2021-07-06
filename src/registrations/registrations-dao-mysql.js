@@ -90,6 +90,7 @@ module.exports = class RegistrationsDao {
                         .setBirth(row.birth)
                         .setSex(Sex[row.sex])
                         .setEmail(row.email)
+                        .setPhone(row.phone)
                         .setAddress(row.address)
                         .setClub(row.club)
                         .setRace(row.race)

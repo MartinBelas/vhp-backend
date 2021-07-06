@@ -6,6 +6,7 @@ const { ResultBuilder } = require('../common/result');
 const ApiKeyService = require('../common/ApiKeyService');
 const NextYearService = require('../common/NextYearService');
 const EmailService = require('../common/EmailService');
+const AdminController = require('../auth/admin/admin-controller.js');
 
 const registration_subject = "Registrace na VH pulmaraton"
 
@@ -42,17 +43,36 @@ module.exports = class RegistrationsController {
 
                 const dao = new RegistrationsDao(nextYear);
 
-                dao.find(competition, true)
-                    .then(data => {
-                        data.forEach(element => { element.email = "" });
-                        data.forEach(element => { element.birth = "" });
-                        data.forEach(element => { element.phone = "" });
-                        res.status(200).json(data);
+                AdminController.authenticate(req, res)
+                    .then(authenticationResult => {
+
+                        dao.find(competition, true)
+                            .then(data => {
+                                res.status(200).json(data);
+                            })
+                            .catch(err => {
+                                console.log('ERR Registration controller, gel all, processing data: ', err);
+                                RegistrationsController.responseWithDbConnectionError(res);
+                            })
+
                     })
-                    .catch(err => {
-                        console.log('ERR Registration controller, gel all, processing data: ', err);
-                        RegistrationsController.responseWithDbConnectionError(res);
-                    })
+                    .catch(authenticationFailure => {
+
+                        dao.find(competition, true)
+                            .then(data => {
+                                data.forEach(element => {
+                                    element.email = "";
+                                    element.phone = "";
+                                    element.birth = "";
+                                });
+                                res.status(200).json(data);
+                            })
+                            .catch(err => {
+                                console.log('ERR Registration controller, gel all, processing data: ', err);
+                                RegistrationsController.responseWithDbConnectionError(res);
+                            })
+
+                    });
             } else {
                 console.log('ERR Registration controller, gel all - wrong next year: ', nextYear);
             }
