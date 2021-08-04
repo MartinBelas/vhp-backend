@@ -256,9 +256,9 @@ async function sendNewPasswordEmail (email, confirmationLink) {
     Pokud o tom nic nevíš, tento e-mail smaž.
 
     Pokud chceš dokončit proces změny hesla, musíš to potvrdit kliknutím na následující odkaz: 
-    www.vh-pulmaraton.cz/nove-heslo/${confirmationLink}
+    https://www.vh-pulmaraton.cz/nove-heslo/${confirmationLink}
 
-    Paltnost odkazu je 24 hodin.
+    Platnost odkazu je 24 hodin.
 
     `;
 
