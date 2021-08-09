@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/css/main.24bce91c.chunk.css",
-    "main.js": "/static/js/main.9bd6944d.chunk.js",
-    "main.js.map": "/static/js/main.9bd6944d.chunk.js.map",
+    "main.js": "/static/js/main.323cd8ad.chunk.js",
+    "main.js.map": "/static/js/main.323cd8ad.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.4dbaf30f.js",
     "runtime-main.js.map": "/static/js/runtime-main.4dbaf30f.js.map",
     "static/js/2.8e07b8eb.chunk.js": "/static/js/2.8e07b8eb.chunk.js",
@@ -14,6 +14,7 @@
     "static/media/ctvrtmaraton.4c04da87.png": "/static/media/ctvrtmaraton.4c04da87.png",
     "static/media/galerijni.c95e37c2.jpg": "/static/media/galerijni.c95e37c2.jpg",
     "static/media/pulmaraton.6b672d2e.jpg": "/static/media/pulmaraton.6b672d2e.jpg",
+    "static/media/radio-cas.f437f9bb.png": "/static/media/radio-cas.f437f9bb.png",
     "static/media/vysledky-2015.c140c2ae.pdf": "/static/media/vysledky-2015.c140c2ae.pdf",
     "static/media/vysledky-2017.1ea98503.pdf": "/static/media/vysledky-2017.1ea98503.pdf",
     "static/media/vysledky-2020.e6a36fce.pdf": "/static/media/vysledky-2020.e6a36fce.pdf",
@@ -31,6 +32,6 @@
     "static/js/runtime-main.4dbaf30f.js",
     "static/js/2.8e07b8eb.chunk.js",
     "static/css/main.24bce91c.chunk.css",
-    "static/js/main.9bd6944d.chunk.js"
+    "static/js/main.323cd8ad.chunk.js"
   ]
 }
