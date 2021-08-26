@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/css/main.24bce91c.chunk.css",
-    "main.js": "/static/js/main.d3a433fb.chunk.js",
-    "main.js.map": "/static/js/main.d3a433fb.chunk.js.map",
+    "main.js": "/static/js/main.b47c2d9b.chunk.js",
+    "main.js.map": "/static/js/main.b47c2d9b.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.4dbaf30f.js",
     "runtime-main.js.map": "/static/js/runtime-main.4dbaf30f.js.map",
     "static/js/2.8e07b8eb.chunk.js": "/static/js/2.8e07b8eb.chunk.js",
@@ -26,12 +26,17 @@
     "static/media/vysledky2019-galerijni.f288cf55.pdf": "/static/media/vysledky2019-galerijni.f288cf55.pdf",
     "static/media/vysledky2019-maraton.2e99a284.pdf": "/static/media/vysledky2019-maraton.2e99a284.pdf",
     "static/media/vysledky2019-pulmaraton.ac61f6b0.pdf": "/static/media/vysledky2019-pulmaraton.ac61f6b0.pdf",
-    "static/media/vysledky2019-stafeta.f3c6abbd.pdf": "/static/media/vysledky2019-stafeta.f3c6abbd.pdf"
+    "static/media/vysledky2019-stafeta.f3c6abbd.pdf": "/static/media/vysledky2019-stafeta.f3c6abbd.pdf",
+    "static/media/vysledky2021-ctvrtmaraton.a01428d1.pdf": "/static/media/vysledky2021-ctvrtmaraton.a01428d1.pdf",
+    "static/media/vysledky2021-galerijni.f82816e5.pdf": "/static/media/vysledky2021-galerijni.f82816e5.pdf",
+    "static/media/vysledky2021-maraton.d1c36260.pdf": "/static/media/vysledky2021-maraton.d1c36260.pdf",
+    "static/media/vysledky2021-pulmaraton.7f97b640.pdf": "/static/media/vysledky2021-pulmaraton.7f97b640.pdf",
+    "static/media/vysledky2021-stafeta.06e9acf0.pdf": "/static/media/vysledky2021-stafeta.06e9acf0.pdf"
   },
   "entrypoints": [
     "static/js/runtime-main.4dbaf30f.js",
     "static/js/2.8e07b8eb.chunk.js",
     "static/css/main.24bce91c.chunk.css",
-    "static/js/main.d3a433fb.chunk.js"
+    "static/js/main.b47c2d9b.chunk.js"
   ]
 }
