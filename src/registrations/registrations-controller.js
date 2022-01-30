@@ -20,7 +20,7 @@ function getRegistrationMailBody(newRegistration) {
         Závod: ${newRegistration.race}
 
         Děkujeme za registraci a těšíme se na Vaši účast.
-        Registraci prosím dokončete zaplacením registračního poplatku 250 Kč na účet 2200743991/2010, děkujeme.
+        Registraci prosím dokončete zaplacením registračního poplatku 400 Kč na účet 2200743991/2010, děkujeme.
 
         Pro případné dotazy nás neváhejte kontaktovat, viz www.vh-pulmaraton.cz/kontakty
         `;
