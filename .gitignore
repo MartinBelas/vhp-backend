@@ -108,3 +108,4 @@ package-lock.json
 # Frontend fetched from its github repo
 #public/
 .env.dev
+.vscode/settings.json
