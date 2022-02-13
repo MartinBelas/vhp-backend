@@ -20,7 +20,7 @@ function getRegistrationMailBody(newRegistration) {
         Závod: ${newRegistration.race}
 
         Děkujeme za registraci a těšíme se na Vaši účast.
-        Registraci prosím dokončete zaplacením registračního poplatku, platební údaje najdete na <a href='https://www.vh-pulmaraton.cz/propozice#startovne'>www.vh-pulmaraton.cz/propozice#startovne</a>.
+        Registraci prosím dokončete zaplacením registračního poplatku, platební údaje najdete na <a href="https://www.vh-pulmaraton.cz/propozice#startovne">www.vh-pulmaraton.cz/propozice#startovne</a>.
 
         Pro případné dotazy nás neváhejte kontaktovat, viz www.vh-pulmaraton.cz/kontakty
         `;
