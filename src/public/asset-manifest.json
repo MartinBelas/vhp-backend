@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.2fe77118.css",
-    "main.js": "/static/js/main.31817db5.js",
+    "main.js": "/static/js/main.d8f03a2a.js",
     "static/media/vysledky-2020.pdf": "/static/media/vysledky-2020.e6a36fce7a36c993f254.pdf",
     "static/media/vysledky-2015.pdf": "/static/media/vysledky-2015.c140c2ae500e705f63dc.pdf",
     "static/media/vysledky-2017.pdf": "/static/media/vysledky-2017.1ea985039f1d81e8799e.pdf",
@@ -21,10 +21,10 @@
     "static/media/pulmaraton-banner-1.jpg": "/static/media/pulmaraton-banner-1.6ea07ccf4a0ec5203167.jpg",
     "index.html": "/index.html",
     "main.2fe77118.css.map": "/static/css/main.2fe77118.css.map",
-    "main.31817db5.js.map": "/static/js/main.31817db5.js.map"
+    "main.d8f03a2a.js.map": "/static/js/main.d8f03a2a.js.map"
   },
   "entrypoints": [
     "static/css/main.2fe77118.css",
-    "static/js/main.31817db5.js"
+    "static/js/main.d8f03a2a.js"
   ]
 }
