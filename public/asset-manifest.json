@@ -1,0 +1,30 @@
+{
+  "files": {
+    "main.css": "/static/css/main.2fe77118.css",
+    "main.js": "/static/js/main.d8f03a2a.js",
+    "static/media/vysledky-2020.pdf": "/static/media/vysledky-2020.e6a36fce7a36c993f254.pdf",
+    "static/media/vysledky-2015.pdf": "/static/media/vysledky-2015.c140c2ae500e705f63dc.pdf",
+    "static/media/vysledky-2017.pdf": "/static/media/vysledky-2017.1ea985039f1d81e8799e.pdf",
+    "static/media/pulmaraton.jpg": "/static/media/pulmaraton.59f3e7c8c6c8aa7dd979.jpg",
+    "static/media/ctvrtmaraton.jpg": "/static/media/ctvrtmaraton.6036ef852997557f0a90.jpg",
+    "static/media/vysledky2019-ctvrtmaraton.pdf": "/static/media/vysledky2019-ctvrtmaraton.4f98dd0918e071c72e61.pdf",
+    "static/media/vysledky2018-ctvrtmaraton.pdf": "/static/media/vysledky2018-ctvrtmaraton.9c009b4ed70a6f5dc958.pdf",
+    "static/media/vysledky2018-pulmaraton.pdf": "/static/media/vysledky2018-pulmaraton.8334b9036ddf2ac93307.pdf",
+    "static/media/vysledky2018-galerijni.pdf": "/static/media/vysledky2018-galerijni.8b7d44beebdb4dbf6084.pdf",
+    "static/media/vysledky2018-maraton.pdf": "/static/media/vysledky2018-maraton.c7961f373c4b93e6f099.pdf",
+    "static/media/galerijni.jpg": "/static/media/galerijni.c95e37c2764c8bec4fa5.jpg",
+    "static/media/bg3.jpg": "/static/media/bg3.9b7be51977f227ae6013.jpg",
+    "static/media/vysledky2019-galerijni.pdf": "/static/media/vysledky2019-galerijni.f288cf55a3e74161db29.pdf",
+    "static/media/vysledky2019-pulmaraton.pdf": "/static/media/vysledky2019-pulmaraton.ac61f6b0e195a3296371.pdf",
+    "static/media/vysledky2019-maraton.pdf": "/static/media/vysledky2019-maraton.2e99a284cf38011fffb1.pdf",
+    "static/media/vysledky2019-stafeta.pdf": "/static/media/vysledky2019-stafeta.f3c6abbd7a32a38c6e94.pdf",
+    "static/media/pulmaraton-banner-1.jpg": "/static/media/pulmaraton-banner-1.6ea07ccf4a0ec5203167.jpg",
+    "index.html": "/index.html",
+    "main.2fe77118.css.map": "/static/css/main.2fe77118.css.map",
+    "main.d8f03a2a.js.map": "/static/js/main.d8f03a2a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2fe77118.css",
+    "static/js/main.d8f03a2a.js"
+  ]
+}
