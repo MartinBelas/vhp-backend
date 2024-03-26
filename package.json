@@ -18,7 +18,7 @@
     "@sendgrid/mail": "~7.4.2",
     "bcrypt": "^5.0.1",
     "custom-env": "~2.0.1",
-    "express": "4.17.1",
+    "express": "4.19.2",
     "jsonwebtoken": "^8.5.1",
     "jwt-simple": "^0.5.6",
     "mailgun.js": "^4.1.6",
